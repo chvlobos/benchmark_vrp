@@ -48,7 +48,7 @@ automatically inside the project folder).
 ## Install
 
 ```bash
-cd hexaly_benchmark
+cd vrp_test_stgo
 python3.11 -m venv .venv
 source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
