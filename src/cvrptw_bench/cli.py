@@ -166,6 +166,52 @@ def cmd_solve(args: argparse.Namespace) -> int:
     return 0 if sol.validation.valid and sol.status == "feasible" else 1
 
 
+# -------------------------------------------------------------------- run
+def cmd_run(args: argparse.Namespace) -> int:
+    from cvrptw_bench.run import load_run_config, run_benchmark
+
+    cfg = load_run_config(args.config)
+    solvers = (
+        args.solvers.split(",")
+        if args.solvers
+        else list(cfg.get("solvers", ["cw", "cw_ls", "ortools"]))
+    )
+    sizes = [int(x) for x in args.sizes.split(",")] if args.sizes else None
+    names = args.only.split(",") if args.only else None
+    t0 = time.perf_counter()
+    rows = run_benchmark(
+        cfg,
+        args.instances,
+        solvers,
+        args.out,
+        workers=args.workers,
+        plots=False if args.no_plots else None,
+        basemap=args.basemap,
+        names=names,
+        sizes=sizes,
+        resume=not args.no_resume,
+    )
+    errors = sum(1 for r in rows if r.get("status") == "error")
+    elapsed = time.perf_counter() - t0
+    print(f"done: {len(rows)} results, {errors} errors, {elapsed:.0f} s -> {args.out}")
+    return 1 if errors else 0
+
+
+# ----------------------------------------------------------------- report
+def cmd_report(args: argparse.Namespace) -> int:
+    from cvrptw_bench.report import build_report
+
+    build_report(
+        args.run_dir,
+        instances_dir=args.instances,
+        out_path=args.out,
+        gallery=args.gallery,
+        basemap=args.basemap or "esri-gray",
+        dpi=args.dpi,
+    )
+    return 0
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bench", description="CVRPTW heterogeneous-fleet benchmark")
@@ -231,13 +277,31 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--dpi", type=int, default=300)
     s.set_defaults(func=cmd_solve)
 
-    for name, phase in (
-        ("run", "Phase 6"),
-        ("report", "Phase 6"),
-    ):
-        s = sub.add_parser(name, help=f"({phase}) not implemented yet")
-        s.add_argument("args", nargs=argparse.REMAINDER)
-        s.set_defaults(func=_not_yet(phase))
+    s = sub.add_parser("run", help="solve a whole instance set with several solvers (resumable)")
+    s.add_argument("--instances", type=Path, default=Path("instances"))
+    s.add_argument("--solvers", default=None, help="comma-separated (default: config)")
+    s.add_argument("--out", type=Path, required=True, help="run directory, e.g. results/run1")
+    s.add_argument("--config", type=Path, default=None)
+    s.add_argument("--workers", type=int, default=1, help="parallel processes (1 = clean timings)")
+    s.add_argument("--no-plots", action="store_true", help="skip map/gantt per solution")
+    s.add_argument("--basemap", default=None, choices=BASEMAP_CHOICES)
+    s.add_argument("--sizes", default=None, help="e.g. 100,200")
+    s.add_argument("--only", default=None, help="comma-separated instance names")
+    s.add_argument("--no-resume", action="store_true", help="redo jobs even if a solution exists")
+    s.set_defaults(func=cmd_run)
+
+    s = sub.add_parser(
+        "report", help="aggregate a run into tables and a self-contained HTML report"
+    )
+    s.add_argument("run_dir", type=Path)
+    s.add_argument("--instances", type=Path, default=Path("instances"))
+    s.add_argument("--out", type=Path, default=None, help="default <run_dir>/report.html")
+    s.add_argument(
+        "--gallery", type=int, default=3, help="instances shown with maps and Gantts (0 = none)"
+    )
+    s.add_argument("--basemap", default=None, choices=BASEMAP_CHOICES)
+    s.add_argument("--dpi", type=int, default=110, help="dpi of the gallery figures")
+    s.set_defaults(func=cmd_report)
     return p
 
 

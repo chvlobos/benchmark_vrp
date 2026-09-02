@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.6 — 2026-09-02 (Phases 0–4 delivered; §6 updated to the implemented heuristic; one time limit for all solvers)
+**Status:** plan v1.7 — 2026-09-02 (Phases 0–4 and 6 delivered — full run of cw / cw_ls / ortools on the 108 instances and the report are in `results/final/`; Phase 5 Hexaly waits for the license and then only adds its column)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -340,9 +340,9 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 | 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | **Done.** Valid on all 108; `insertable` = 0; cw_ls converges in ≤ 20 s at n = 600; 81 tests |
 | 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | **Done.** Objective recomputed by the validator equals OR-Tools' own exactly (asserted in tests); matrices registered in C++; 86 tests |
 | 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | Adapter imports and builds the model; runs when the key arrives |
-| 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | `report.html` reviewed; repo public |
+| 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | **Done (without Hexaly).** `bench run` (resumable, parallel, log.jsonl + run_meta.json) and `bench report` (coverage-first gaps, per-factor tables and box plots, performance profiles, time-to-best, convergence, gallery, data-driven conclusions, CSV twins); 324/324 results valid; OR-Tools at best coverage on 108/108 with the best cost on 88, CW+LS within 2.5 % on average (24 customers missed, all at 105 % stress), CW 18.8 % / 71 missed in ~1 s; 93 tests; report in `results/final/` |
 
-When the Hexaly license arrives, Phase 5b re-runs only the Hexaly column with `--resume` and rebuilds the report.
+When the Hexaly license arrives, Phase 5 delivers the adapter and `bench run --out results/final --solvers hexaly` adds only the Hexaly column to the published run (resume is the default); `bench report results/final` rebuilds the report.
 
 ---
 

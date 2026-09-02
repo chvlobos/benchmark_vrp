@@ -35,12 +35,6 @@ def test_validate_broken(capsys, name):
     assert rc == 1 and out.startswith("INVALID") and "violation:" in out
 
 
-def test_not_implemented_commands(capsys):
-    for cmd in ("run", "report"):
-        assert main([cmd]) == 2
-    assert "not implemented yet" in capsys.readouterr().err
-
-
 def test_fixture_files_present():
     assert Path(INST).exists()
     assert len(list(DATA.glob("broken_*.json"))) >= 5

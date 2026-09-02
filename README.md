@@ -21,8 +21,8 @@ The full design and the phased plan are in [PLAN.md](PLAN.md).
 | 2 | Maps (PNG + HTML) and x-t Gantt plots; `bench plot` | **done** |
 | 3 | Clarke-Wright (`cw`) and Clarke-Wright + local search (`cw_ls`); `bench solve` | **done** |
 | 4 | OR-Tools adapter (`ortools`) | **done** |
-| 5 | Hexaly adapter | next |
-| 6 | Full run, HTML report | |
+| 5 | Hexaly adapter | waiting for the evaluation license |
+| 6 | Resumable full run (`bench run`), HTML report with conclusions (`bench report`); results for `cw`, `cw_ls`, `ortools` on the 108 instances in `results/final/` | **done** (Hexaly column to be added with the same commands) |
 
 ## Requirements
 
@@ -54,7 +54,7 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 86 tests
+pytest -q                   # 93 tests
 ```
 
 Hexaly is optional: `pip install hexaly` plus a license key, see Phase 5.
@@ -95,6 +95,80 @@ bench solve instances/RC-400-T-105.json --solver cw --time-limit 30 --no-plots -
 evaluates the plan with the validator and writes `solution.json` plus the three plots.
 **The same limit applies to every solver** — it is a cap: `cw` finishes its 20 starts in
 seconds and reports that; `cw_ls`, OR-Tools and Hexaly use it fully.
+
+### The full benchmark: `bench run` and `bench report`
+
+```bash
+bench run --out results/full --solvers cw,cw_ls,ortools --workers 2 --no-plots
+bench run --out results/full --solvers cw,cw_ls,ortools --sizes 100,200      # a subset
+bench run --out results/final --solvers hexaly                               # later: adds the Hexaly column to the published run
+bench report results/full                                                    # -> results/full/report.html + tables/*.csv
+bench report results/final --gallery 3 --basemap esri-gray                   # rebuild the published report
+```
+
+`bench run` solves every instance under `instances/` with every solver named, instances in
+order of size then name, and writes `results/full/{instance}/{solver}/solution.json` (plus the
+plots unless `--no-plots`), one line per job in `log.jsonl`, and `run_meta.json` with the host,
+package versions, configuration and worker count. It is **resumable**: a job whose
+`solution.json` exists with status `feasible` is skipped, so an interrupted run continues where
+it stopped and a solver added later (Hexaly) only runs its own missing jobs. `--workers N` runs
+N jobs in parallel processes; every solver stays single-threaded, so keep N ≤ physical cores
+if wall times are to be compared. `--no-resume` redoes everything.
+
+`bench report` re-reads the solutions (never the log), joins the instance factors and the
+generator's seed solutions, computes coverage-first gaps — the best known coverage per instance
+is the maximum served among valid results, a result below it gets a coverage deficit and no
+cost gap, among results at best coverage the gap is `cost / best cost − 1` — and writes a
+self-contained `report.html` (Plotly inlined, no internet needed to view it) with overall and
+per-factor tables and box plots, performance profiles, time-to-best, convergence traces, a small
+gallery of maps and Gantt charts, data-driven conclusions and a "which tool when" section, plus
+CSV twins of every table under `tables/`. Instances that lack a result from one of the solvers
+present are left out of the page (and listed), so a half-finished run never biases the averages.
+
+## Results so far (cw, cw_ls, ortools — Hexaly pending)
+
+Full run of 2026-09-02: 108 instances × 3 solvers = 324 results, all valid, one common
+wall-clock cap per size (60 / 60 / 120 / 180 s), seed 42, single thread, 2 parallel workers
+on a 2-core Linux box (Python 3.11.15, OR-Tools 9.15). The report is
+[`results/final/report.html`](results/final/report.html) (self-contained, open it in a
+browser) and the tables are in `results/final/tables/`; `results/final/` is the complete run
+directory — every `solution.json` (re-validate any of them with `bench validate`), `log.jsonl`
+and `run_meta.json` — minus the plots, so `bench report results/final` rebuilds the page and
+`bench run --out results/final --solvers hexaly` will extend it. Gaps are coverage-first: the best
+known coverage per instance is the maximum served among valid results (seed included); a
+result below it counts a coverage deficit and no cost gap; among results at best coverage,
+gap = cost / best cost − 1.
+
+| Solver | Instances at best coverage | Customers missed (sum) | Best cost (wins) | Mean cost gap | Median | Worst | Mean time to best |
+|---|---|---|---|---|---|---|---|
+| OR-Tools | 108 / 108 | 0 | 88 | 0.4 % | 0.0 % | 6.4 % | 79 s |
+| CW + local search | 89 / 108 | 24 | 20 | 2.5 % | 2.1 % | 12.8 % | 48 s |
+| Clarke-Wright | 80 / 108 | 71 | 0 | 18.8 % | 16.8 % | 52.8 % | 0.3 s (wall 0.9 s) |
+
+What the numbers say, in short:
+
+* **OR-Tools is the reference.** It never misses the best known coverage, wins the cost on
+  88 of 108 instances, and where it does not win it is within 6.4 %. Head to head with the
+  own heuristic: it serves more customers on 19 instances (all of them at 105 % stress),
+  fewer on none; at equal coverage it is cheaper on 69 and dearer on 20, by +2.0 % on average.
+* **The own heuristic is close but not equal.** CW + local search is within 2.5 % on average
+  and full coverage everywhere at 60 % and 85 % stress; the 24 customers it misses are all on
+  over-subscribed (105 %) instances, where OR-Tools consolidates one or two more customers
+  into the same fleet. Its gap grows with tighter windows (1.6 % on L → 3.6 % on T profiles)
+  and *shrinks* with size (2.8 % at n = 100 → 1.7 % at n = 600) — the latter because OR-Tools
+  is still improving when the 180 s cap stops it (time to best 150 s of 180 on average at
+  n = 600), so the gap at the largest size is a statement about the limit, not the methods.
+* **Local search is what makes the heuristic usable.** Plain Clarke-Wright is 15.7 % more
+  expensive than CW + LS at equal coverage and misses 71 customers, but answers in about a
+  second; a first plan or a warm start, not an optimiser.
+* **Everything is reproducible and re-judged.** Every result was re-evaluated from its
+  visiting orders by the independent validator, and on all 324 results the (served, cost)
+  the solver itself reported for its final solution — for OR-Tools, its objective net of the
+  drop penalties — equals what the validator recomputed.
+
+When the Hexaly license arrives, `bench run --out results/final --solvers hexaly` adds its 108
+jobs to the published run directory (nothing else is recomputed) and `bench report results/final`
+regenerates the report with a fourth column and the Hexaly paragraph of the conclusions.
 
 ## OR-Tools: `ortools`
 
@@ -199,14 +273,14 @@ src/cvrptw_bench/
   generator/  config.py  geo.py  sampling.py  demand.py  seed_solution.py  windows.py  generate.py
   data/       santiago_urban.geojson
   solvers/    base.py  routes.py  clarke_wright.py  local_search.py  ortools_solver.py  (hexaly: Phase 5)
-  run.py      solve_one: time-limit tiers, solver params, artefacts
+  run.py      solve_one (time-limit tiers, solver params, artefacts), run_benchmark (resumable, parallel)
   viz/        style.py  map_static.py  map_html.py  gantt.py
-  report/     (Phase 6)
-  cli.py      bench info | validate | generate | plot | solve | version  (+ run | report later)
+  report/     aggregate.py (tables, gaps, profiles)  charts.py (Plotly)  build_html.py (report + conclusions)
+  cli.py      bench info | validate | generate | plot | solve | run | report | version
 configs/      generator.default.yaml  run.default.yaml
 tests/        pytest suite; tests/data holds a hand-checked toy instance and broken solutions
 instances/    the 108-instance benchmark set + seed solutions + index.csv
-results/      run outputs (git-ignored except final summaries)
+results/      run outputs (git-ignored) — except results/final/: the published run (solutions, tables, report)
 ```
 
 ## License
