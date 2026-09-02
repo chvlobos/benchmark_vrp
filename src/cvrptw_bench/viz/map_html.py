@@ -18,8 +18,47 @@ from cvrptw_bench.viz.style import (
     type_color_map,
 )
 
+ESRI_GRAY = (
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/"
+    "MapServer/tile/{z}/{y}/{x}"
+)
+ESRI_ATTR = "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ"
 
-def plot_map_html(instance: Instance, solution: Solution, path: str | Path) -> Path:
+
+def _add_tiles(fmap: folium.Map, basemap: str) -> None:
+    """Keyless tile layers; the first one added is the one shown."""
+    if basemap == "none":
+        return
+    layers = {
+        "esri-gray": [
+            ("Esri light gray", ESRI_GRAY, ESRI_ATTR),
+            ("OpenStreetMap", "OpenStreetMap", None),
+        ],
+        "osm": [
+            ("OpenStreetMap", "OpenStreetMap", None),
+            ("Esri light gray", ESRI_GRAY, ESRI_ATTR),
+        ],
+        "esri-street": [
+            (
+                "Esri streets",
+                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/"
+                "MapServer/tile/{z}/{y}/{x}",
+                ESRI_ATTR,
+            ),
+            ("OpenStreetMap", "OpenStreetMap", None),
+        ],
+        "carto": [("CartoDB positron (API key)", "CartoDB positron", None)],
+    }.get(basemap, [("OpenStreetMap", "OpenStreetMap", None)])
+    for name, tiles, attr in layers:
+        kw = {"name": name, "control": True}
+        if attr:
+            kw["attr"] = attr
+        folium.TileLayer(tiles=tiles, **kw).add_to(fmap)
+
+
+def plot_map_html(
+    instance: Instance, solution: Solution, path: str | Path, basemap: str = "esri-gray"
+) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     cust = {c.id: c for c in instance.customers}
@@ -29,9 +68,10 @@ def plot_map_html(instance: Instance, solution: Solution, path: str | Path) -> P
     fmap = folium.Map(
         location=[instance.depot.lat, instance.depot.lon],
         zoom_start=11,
-        tiles="CartoDB positron",
+        tiles=None,
         control_scale=True,
     )
+    _add_tiles(fmap, basemap)
     title = (
         f"<div style='position:fixed;top:10px;left:60px;z-index:9999;background:#fcfcfbee;"
         f"padding:6px 10px;border:1px solid #e6e5e1;border-radius:4px;"

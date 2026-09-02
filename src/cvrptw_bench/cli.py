@@ -173,7 +173,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument(
         "--out", type=Path, default=None, help="output directory (default: next to the solution)"
     )
-    s.add_argument("--no-basemap", action="store_true", help="skip the web-tile basemap")
+    s.add_argument(
+        "--basemap",
+        choices=["esri-gray", "osm", "esri-street", "carto", "none"],
+        default="esri-gray",
+        help="tile provider for the maps (keyless: esri-gray, osm, esri-street; "
+        "carto needs an API key); default esri-gray",
+    )
+    s.add_argument("--no-basemap", action="store_true", help="same as --basemap none")
     s.add_argument("--no-html", action="store_true", help="skip the interactive HTML map")
     s.add_argument("--dpi", type=int, default=300)
     s.set_defaults(func=cmd_plot)

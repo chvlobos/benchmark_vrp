@@ -8,18 +8,22 @@ from cvrptw_bench.core.instance import Instance
 from cvrptw_bench.core.solution import Solution
 from cvrptw_bench.viz.gantt import plot_gantt
 from cvrptw_bench.viz.map_html import plot_map_html
-from cvrptw_bench.viz.map_static import plot_map
+from cvrptw_bench.viz.map_static import BASEMAPS, DEFAULT_BASEMAP, plot_map
 
 
 def plot_all(
     instance: Instance,
     solution: Solution,
     out_dir: str | Path,
-    basemap: bool = True,
+    basemap: str | bool = DEFAULT_BASEMAP,
     dpi: int = 300,
     html: bool = True,
 ) -> dict[str, Path]:
-    """Write map.png, map.html and gantt.png into out_dir; return their paths."""
+    """Write map.png, map.html and gantt.png into out_dir; return their paths.
+
+    ``basemap``: one of :data:`BASEMAPS` ("esri-gray" default, "osm", "esri-street",
+    "carto", "none"); True/False are accepted as default/none.
+    """
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     paths = {
@@ -27,8 +31,13 @@ def plot_all(
         "gantt_png": plot_gantt(instance, solution, out / "gantt.png", dpi=dpi),
     }
     if html:
-        paths["map_html"] = plot_map_html(instance, solution, out / "map.html")
+        bm = (
+            DEFAULT_BASEMAP
+            if basemap is True
+            else ("none" if basemap in (False, None) else basemap)
+        )
+        paths["map_html"] = plot_map_html(instance, solution, out / "map.html", basemap=bm)
     return paths
 
 
-__all__ = ["plot_all", "plot_gantt", "plot_map", "plot_map_html"]
+__all__ = ["BASEMAPS", "DEFAULT_BASEMAP", "plot_all", "plot_gantt", "plot_map", "plot_map_html"]

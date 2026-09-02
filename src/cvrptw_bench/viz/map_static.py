@@ -35,25 +35,47 @@ from cvrptw_bench.viz.style import (  # noqa: E402
 log = logging.getLogger(__name__)
 TILE_CACHE = ".tile_cache"
 
+# Keyless tile providers, tried in order. CartoDB (the usual light basemap) started
+# requiring an API key in 2026 and answers with watermarked tiles instead of an error,
+# so it is not in the default chain.
+BASEMAPS: dict[str, list[str]] = {
+    "esri-gray": ["Esri.WorldGrayCanvas", "OpenStreetMap.Mapnik"],
+    "osm": ["OpenStreetMap.Mapnik", "Esri.WorldGrayCanvas"],
+    "esri-street": ["Esri.WorldStreetMap", "OpenStreetMap.Mapnik"],
+    "carto": ["CartoDB.Positron"],  # needs an API key; kept for people who have one
+    "none": [],
+}
+DEFAULT_BASEMAP = "esri-gray"
 
-def _add_basemap(ax, zoom: int | None = None) -> bool:
-    """Try to draw CartoDB Positron tiles under the axes; return False when offline."""
+
+def _provider(name: str):
+    import contextily as cx
+
+    p = cx.providers
+    for part in name.split("."):
+        p = p[part]
+    return p
+
+
+def _add_basemap(ax, basemap: str = DEFAULT_BASEMAP, zoom: int | None = None) -> str | None:
+    """Draw web tiles under the axes; return the provider used, or None when none worked."""
+    if basemap not in BASEMAPS:
+        raise ValueError(f"unknown basemap '{basemap}', expected one of {sorted(BASEMAPS)}")
     try:
         import contextily as cx
-
-        cx.set_cache_dir(TILE_CACHE)
-        kwargs = {
-            "crs": "EPSG:4326",
-            "source": cx.providers.CartoDB.Positron,
-            "attribution_size": 5,
-        }
-        if zoom is not None:
-            kwargs["zoom"] = zoom
-        cx.add_basemap(ax, **kwargs)
-        return True
-    except Exception as exc:  # noqa: BLE001 - offline, rate-limited, provider down: degrade
-        log.warning("basemap unavailable (%s); drawing without tiles", type(exc).__name__)
-        return False
+    except ImportError:  # pragma: no cover
+        return None
+    cx.set_cache_dir(TILE_CACHE)
+    for name in BASEMAPS[basemap]:
+        try:
+            kwargs = {"crs": "EPSG:4326", "source": _provider(name), "attribution_size": 5}
+            if zoom is not None:
+                kwargs["zoom"] = zoom
+            cx.add_basemap(ax, **kwargs)
+            return name
+        except Exception as exc:  # noqa: BLE001 - offline, rate-limited, provider down: next one
+            log.warning("basemap %s unavailable (%s)", name, type(exc).__name__)
+    return None
 
 
 def _draw_polygon_outline(ax) -> None:
@@ -70,10 +92,14 @@ def plot_map(
     instance: Instance,
     solution: Solution,
     path: str | Path,
-    basemap: bool = True,
+    basemap: str | bool = DEFAULT_BASEMAP,
     dpi: int = 300,
     title: str | None = None,
 ) -> Path:
+    if basemap is True:
+        basemap = DEFAULT_BASEMAP
+    if basemap is False or basemap is None:
+        basemap = "none"
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     lat = {c.id: c.lat for c in instance.customers}
@@ -139,8 +165,8 @@ def plot_map(
     ax.set_ylim(min(all_lat) - pad_y, max(all_lat) + pad_y)
     ax.set_aspect(1.0 / math.cos(math.radians(instance.depot.lat)))
 
-    has_tiles = basemap and _add_basemap(ax)
-    if not has_tiles:
+    used_provider = _add_basemap(ax, basemap) if basemap != "none" else None
+    if used_provider is None:
         _draw_polygon_outline(ax)
         ax.grid(True, color=GRID, lw=0.5)
     ax.tick_params(labelsize=7, colors=INK_SECONDARY)

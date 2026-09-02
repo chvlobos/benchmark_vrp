@@ -70,12 +70,15 @@ bench generate                                              # regenerate the 108
 bench generate --sizes 100,200 --families R --out /tmp/small # a subset
 bench generate --only C-600-T-85 --out /tmp/one              # one instance
 
-bench plot instances/RC-400-T-105.seed.json --instance instances/RC-400-T-105.json --out /tmp/plots
-#   -> map.png (routes over a CartoDB basemap; needs internet once, tiles are cached in .tile_cache/)
+bench plot instances/RC-400-T-105.seed.json --instance instances/RC-400-T-105.json --out results/plots/RC-400-T-105
+#   -> map.png (routes over a light-gray Esri basemap; needs internet once, tiles are cached in .tile_cache/)
 #      map.html (Leaflet: one toggleable layer per route, tooltips with the schedule of every stop)
 #      gantt.png (x-t diagram: one row per vehicle, travel / waiting / service bars and each
 #                 customer's time window as a bracket; unserved customers' windows at the bottom)
-#   --no-basemap draws plain axes with the urban polygon outline; --dpi 300 is the default.
+#   --basemap esri-gray|osm|esri-street|carto|none selects the tiles (keyless: esri-gray, osm,
+#   esri-street; CartoDB requires an API key since 2026 and otherwise returns watermarked tiles);
+#   when no provider answers the map falls back to plain axes with the urban polygon outline.
+#   --dpi 300 is the default. results/ is git-ignored, a convenient place for outputs.
 ```
 
 Colour is the same in every figure: blue = small vehicle, orange = medium, aqua = large,
