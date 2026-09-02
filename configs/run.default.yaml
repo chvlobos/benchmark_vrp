@@ -1,0 +1,36 @@
+# Default configuration of a benchmark run (`bench run`).
+
+seed: 42
+solvers: [cw, cw_ls, ortools, hexaly]
+
+# Wall-clock limit per instance, by instance size (upper bound of each tier, inclusive).
+time_limits_s:
+  200: 60
+  400: 120
+  600: 180
+  default: 300
+
+threads: 1                            # primary comparison is single-threaded
+
+cw:
+  multistart_runs: 20
+  multistart_time_budget_s: 30
+  lambda_range: [0.6, 1.4]
+  savings_noise: 0.10
+  neighbours: 30
+
+cw_ls:
+  time_budget_s: 60
+  neighbours: 30
+
+ortools:
+  first_solution: PATH_CHEAPEST_ARC
+  metaheuristic: GUIDED_LOCAL_SEARCH
+  log_search: false
+
+hexaly:
+  nb_threads: 1
+
+outputs:
+  plots: true                         # map.png, map.html, gantt.png per instance x solver
+  basemap: true                       # contextily tiles (cached); falls back to plain axes offline
