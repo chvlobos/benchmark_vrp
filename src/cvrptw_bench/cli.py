@@ -123,6 +123,21 @@ def cmd_generate(args: argparse.Namespace) -> int:
     return 0
 
 
+# ------------------------------------------------------------------- plot
+def cmd_plot(args: argparse.Namespace) -> int:
+    from cvrptw_bench.viz import plot_all
+
+    inst = Instance.load(args.instance)
+    sol = Solution.load(args.solution)
+    out = args.out or Path(args.solution).with_suffix("").parent / f"plots_{sol.solver}"
+    paths = plot_all(
+        inst, sol, out, basemap=not args.no_basemap, dpi=args.dpi, html=not args.no_html
+    )
+    for k, p in paths.items():
+        print(f"{k:<9} {p}")
+    return 0
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bench", description="CVRPTW heterogeneous-fleet benchmark")
@@ -152,8 +167,18 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--only", type=str, default=None, help="one instance name, e.g. RC-400-T-105")
     s.set_defaults(func=cmd_generate)
 
+    s = sub.add_parser("plot", help="map (PNG + HTML) and x-t Gantt of a solution")
+    s.add_argument("solution", type=Path)
+    s.add_argument("--instance", type=Path, required=True)
+    s.add_argument(
+        "--out", type=Path, default=None, help="output directory (default: next to the solution)"
+    )
+    s.add_argument("--no-basemap", action="store_true", help="skip the web-tile basemap")
+    s.add_argument("--no-html", action="store_true", help="skip the interactive HTML map")
+    s.add_argument("--dpi", type=int, default=300)
+    s.set_defaults(func=cmd_plot)
+
     for name, phase in (
-        ("plot", "Phase 2"),
         ("solve", "Phase 3"),
         ("run", "Phase 6"),
         ("report", "Phase 6"),

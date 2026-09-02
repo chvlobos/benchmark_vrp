@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.2 — 2026-09-02 (Phases 0–1 delivered; §3/§8.2 match the implemented validator, §4.3/§4.4 the implemented generator)
+**Status:** plan v1.3 — 2026-09-02 (Phases 0–2 delivered; §3/§8.2 match the implemented validator, §4.3/§4.4 the implemented generator, §8.3 the implemented plots)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -287,8 +287,8 @@ Computed post-hoc by the validator on the final routes, in this order: `oversize
 
 ### 8.3 Plots
 
-- **Map** (`map.png`, 300 dpi, `map.html`): depot marker, customers coloured by vehicle, routes as straight great-circle segments, unserved customers as hollow red markers, basemap tiles via contextily (tile cache; graceful fallback to plain axes when offline). HTML via folium with per-route toggles and stop tooltips (window, arrival, wait).
-- **x-t Gantt** (`gantt.png`): one row per used vehicle (grouped by type), time on x; per stop a bar for travel, waiting and service, and a thin bracket for the customer's window so tightness is visible; a final row lists unserved customers with their windows.
+- **Map** (`map.png`, 300 dpi, `map.html`): depot marker, routes as straight great-circle segments coloured by *vehicle type* (blue/orange/aqua, fixed across all figures; neighbouring routes of the same type alternate three shades of the hue), customer markers sized by demand, unserved customers as hollow red markers, CartoDB Positron tiles via contextily (tile cache; graceful fallback to plain axes with the urban polygon outline when offline). HTML via folium with one toggleable layer per route and stop tooltips (window, arrival, wait, service).
+- **x-t Gantt** (`gantt.png`): one row per used vehicle (grouped by type), time of day on x; per stop a thin travel bar, a hatched waiting bar and a solid service bar in the type's colour, plus a bracket for the customer's window drawn at two alternating heights (neighbouring brackets do not merge) and tied to its bar by a connector; departure/return ticks; unserved customers' windows packed into red lanes at the bottom with their ids.
 
 ### 8.4 Report (`report.html`, self-contained)
 
@@ -333,7 +333,7 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 |---|---|---|---|
 | 0 — Skeleton | 1 | Repo, package, CLI stub, CI (tests on push), shared core (instance, matrices, cost model, solution schema, validator) | **Done.** `bench validate` accepts a hand-written toy instance/solution and rejects six deliberately broken ones |
 | 1 — Generator | 1–3 | Polygon, sampling families, demand/fleet sizing, seed solution, windows, JSON, `bench generate` | **Done.** 108 instances in 7 s; all seed solutions pass the validator; `instances/index.csv` holds the statistics |
-| 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | Plots of seed solutions for one instance per family reviewed by you |
+| 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | **Done.** `viz/` renders map.png (basemap, offline fallback), map.html (folium, per-route layers) and gantt.png (two-level window brackets, unserved lanes); seed solutions of every family rendered and reviewed |
 | 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | Valid on all 108; `insertable` = 0 for cw_ls; profile shows < 60 s at n = 600; unit tests for merge/insertion feasibility |
 | 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | Valid on all 108; objective recomputed by validator matches OR-Tools' own within rounding |
 | 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | Adapter imports and builds the model; runs when the key arrives |

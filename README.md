@@ -18,8 +18,8 @@ The full design and the phased plan are in [PLAN.md](PLAN.md).
 |---|---|---|
 | 0 | Repository skeleton, shared core (instance schema, integer matrices, solution schema), independent validator, CLI `info`/`validate`, tests, CI | **done** |
 | 1 | Instance generator (Greater Santiago polygon, R/C/RC families, window profiles, fleet sizing, seed solutions); the 108-instance set under `instances/` | **done** |
-| 2 | Maps (PNG + HTML) and x-t Gantt plots | next |
-| 3 | Clarke-Wright + local search | |
+| 2 | Maps (PNG + HTML) and x-t Gantt plots; `bench plot` | **done** |
+| 3 | Clarke-Wright + local search | next |
 | 4 | OR-Tools adapter | |
 | 5 | Hexaly adapter | |
 | 6 | Full run, HTML report | |
@@ -54,7 +54,7 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 60 tests
+pytest -q                   # 67 tests
 ```
 
 Hexaly is optional: `pip install hexaly` plus a license key, see Phase 5.
@@ -69,7 +69,18 @@ bench validate tests/data/broken_capacity.json --instance tests/data/toy_instanc
 bench generate                                              # regenerate the 108-instance set (deterministic)
 bench generate --sizes 100,200 --families R --out /tmp/small # a subset
 bench generate --only C-600-T-85 --out /tmp/one              # one instance
+
+bench plot instances/RC-400-T-105.seed.json --instance instances/RC-400-T-105.json --out /tmp/plots
+#   -> map.png (routes over a CartoDB basemap; needs internet once, tiles are cached in .tile_cache/)
+#      map.html (Leaflet: one toggleable layer per route, tooltips with the schedule of every stop)
+#      gantt.png (x-t diagram: one row per vehicle, travel / waiting / service bars and each
+#                 customer's time window as a bracket; unserved customers' windows at the bottom)
+#   --no-basemap draws plain axes with the urban polygon outline; --dpi 300 is the default.
 ```
+
+Colour is the same in every figure: blue = small vehicle, orange = medium, aqua = large,
+hollow red = unserved customer, black square = depot. Routes are drawn as straight segments
+between stops because the benchmark's travel model is great-circle × 1.3, not the road network.
 
 ## The instance set
 
@@ -128,8 +139,9 @@ src/cvrptw_bench/
   generator/  config.py  geo.py  sampling.py  demand.py  seed_solution.py  windows.py  generate.py
   data/       santiago_urban.geojson
   solvers/    base.py  (adapters arrive in Phases 3-5)
-  viz/  report/  (Phases 2, 6)
-  cli.py      bench info | validate | generate | version  (+ plot | solve | run | report later)
+  viz/        style.py  map_static.py  map_html.py  gantt.py
+  report/     (Phase 6)
+  cli.py      bench info | validate | generate | plot | version  (+ solve | run | report later)
 configs/      generator.default.yaml  run.default.yaml
 tests/        pytest suite; tests/data holds a hand-checked toy instance and broken solutions
 instances/    the 108-instance benchmark set + seed solutions + index.csv
