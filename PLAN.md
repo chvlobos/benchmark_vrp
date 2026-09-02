@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.5 — 2026-09-02 (Phases 0–3 delivered; §6 updated to the implemented heuristic; one time limit for all solvers)
+**Status:** plan v1.6 — 2026-09-02 (Phases 0–4 delivered; §6 updated to the implemented heuristic; one time limit for all solvers)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -233,7 +233,7 @@ Savings are distance-based; the type-dependent cost is only felt at type assignm
 - Cost: `SetArcCostEvaluatorOfVehicle(cost[type], v)` and `SetFixedCostOfVehicle(fixed_cost[type], v)` — the exact shared cost model.
 - Capacity: one dimension with per-vehicle capacities from the type.
 - Time: dimension with transit = travel + service of the origin, slack unbounded (waiting), cumul windows per customer, `[opening, closing]` at each vehicle start and end; start cumul left free (late departure allowed).
-- Unserved: `AddDisjunction([node], penalty)` with `penalty = 10 × (Σ fixed costs + Σ_i max_j cost_large[i][j])`, so every served customer beats any cost.
+- Unserved: `AddDisjunction([node], penalty)` with `penalty = 2 × (Σ fixed costs + Σ_i max_j cost_max[i][j] + V × max_j cost_max[0][j]) + 1` — twice an upper bound on any plan's routing cost — so every served customer beats any cost (implemented; the tests assert objective = validator cost + penalty × dropped).
 - Search: `PATH_CHEAPEST_ARC` + `GUIDED_LOCAL_SEARCH`, time limit by size (default 60 s for n ≤ 200, 120 s for 400, 180 s for 600; configurable, and given no compute limit a 300 s tier is a one-line change). **The same tier limit is the cap for every solver** (decision 2026-09-02: comparisons must be fair); `cw` stops after its 20 starts and reports its shorter wall time, `cw_ls` uses the limit fully with successive starts. `AddAtSolutionCallback` records `(elapsed, objective)` for time-to-best and the convergence trace. Single-threaded (OR-Tools local search is).
 - Output mapped to the common `Solution`, then validated.
 
@@ -338,7 +338,7 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 | 1 — Generator | 1–3 | Polygon, sampling families, demand/fleet sizing, seed solution, windows, JSON, `bench generate` | **Done.** 108 instances in 7 s; all seed solutions pass the validator; `instances/index.csv` holds the statistics |
 | 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | **Done.** `viz/` renders map.png (basemap, offline fallback), map.html (folium, per-route layers) and gantt.png (two-level window brackets, unserved lanes); seed solutions of every family rendered and reviewed |
 | 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | **Done.** Valid on all 108; `insertable` = 0; cw_ls converges in ≤ 20 s at n = 600; 81 tests |
-| 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | Valid on all 108; objective recomputed by validator matches OR-Tools' own within rounding |
+| 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | **Done.** Objective recomputed by the validator equals OR-Tools' own exactly (asserted in tests); matrices registered in C++; 86 tests |
 | 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | Adapter imports and builds the model; runs when the key arrives |
 | 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | `report.html` reviewed; repo public |
 

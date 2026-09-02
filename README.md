@@ -20,8 +20,8 @@ The full design and the phased plan are in [PLAN.md](PLAN.md).
 | 1 | Instance generator (Greater Santiago polygon, R/C/RC families, window profiles, fleet sizing, seed solutions); the 108-instance set under `instances/` | **done** |
 | 2 | Maps (PNG + HTML) and x-t Gantt plots; `bench plot` | **done** |
 | 3 | Clarke-Wright (`cw`) and Clarke-Wright + local search (`cw_ls`); `bench solve` | **done** |
-| 4 | OR-Tools adapter | next |
-| 5 | Hexaly adapter | |
+| 4 | OR-Tools adapter (`ortools`) | **done** |
+| 5 | Hexaly adapter | next |
 | 6 | Full run, HTML report | |
 
 ## Requirements
@@ -54,7 +54,7 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 81 tests
+pytest -q                   # 86 tests
 ```
 
 Hexaly is optional: `pip install hexaly` plus a license key, see Phase 5.
@@ -95,6 +95,22 @@ bench solve instances/RC-400-T-105.json --solver cw --time-limit 30 --no-plots -
 evaluates the plan with the validator and writes `solution.json` plus the three plots.
 **The same limit applies to every solver** — it is a cap: `cw` finishes its 20 starts in
 seconds and reports that; `cw_ls`, OR-Tools and Hexaly use it fully.
+
+## OR-Tools: `ortools`
+
+`solvers/ortools_solver.py` builds the Routing model on the shared integer matrices: one cost
+matrix per vehicle type registered in C++ (`RegisterTransitMatrix`, no Python callbacks in the
+search) and assigned per vehicle, `SetFixedCostOfVehicle` so the fixed cost is charged only when
+a vehicle is used, a capacity dimension with per-vehicle capacities, and a time dimension whose
+cumul is the service start (transit = service at origin + travel, slack = waiting, customer
+cumuls inside their windows, vehicle start/end inside the operating horizon, free departure).
+Every customer is optional through a disjunction with one uniform penalty larger than any
+achievable routing cost, which makes OR-Tools' single objective exactly the benchmark's
+lexicographic one: serve as many customers as possible, then minimise cost. This is checked, not
+assumed — the tests assert that OR-Tools' objective equals the validator's cost plus penalty ×
+dropped on every run. Search: `PATH_CHEAPEST_ARC` first solution + `GUIDED_LOCAL_SEARCH`,
+single-threaded, with the common time limit; an at-solution callback records every improvement
+for the time-to-best and the convergence trace.
 
 ## The own heuristic: `cw` and `cw_ls`
 
@@ -182,7 +198,7 @@ src/cvrptw_bench/
   core/       instance.py  matrices.py  solution.py  validator.py  insertion.py
   generator/  config.py  geo.py  sampling.py  demand.py  seed_solution.py  windows.py  generate.py
   data/       santiago_urban.geojson
-  solvers/    base.py  routes.py  clarke_wright.py  local_search.py  (ortools, hexaly: Phases 4-5)
+  solvers/    base.py  routes.py  clarke_wright.py  local_search.py  ortools_solver.py  (hexaly: Phase 5)
   run.py      solve_one: time-limit tiers, solver params, artefacts
   viz/        style.py  map_static.py  map_html.py  gantt.py
   report/     (Phase 6)
