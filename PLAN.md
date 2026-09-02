@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.1 — 2026-09-02 (Phase 0 delivered; §3/§8.2 updated to match the implemented validator)
+**Status:** plan v1.2 — 2026-09-02 (Phases 0–1 delivered; §3/§8.2 match the implemented validator, §4.3/§4.4 the implemented generator)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -131,15 +131,16 @@ Default parameters (all in the generator config, YAML/JSON, overridable):
 | Cost per km | 350 / 500 / 700 CLP/km | Larger truck, higher running cost |
 | Fleet mix | counts in ratio 3 : 2 : 1 (small : medium : large) | One "block" = 6 vehicles, 8 800 units |
 
-Fleet sizing: sample demands first; total fleet capacity target = Σ demand ÷ stress; take the number of blocks (allowing partial blocks in the order small → medium → large) that gets closest to the target; store the achieved ratio.
+Fleet sizing: sample demands first; total fleet capacity target = Σ demand ÷ stress; candidates are *b* full blocks plus any partial block (at most the block's count of each type), keeping only fleets with at least one large vehicle; for stress ≤ 100 % take the candidate closest to the target among those with capacity ≥ demand, for stress > 100 % the closest among those with capacity < demand (so an over-subscribed cell really is over-subscribed even at n = 100, where a 5-vehicle fleet is coarse); store the achieved ratio (0.59–0.61 / 0.82–0.86 / 1.01–1.07 on the generated set).
 
 ### 4.4 Time windows around a reference solution
 
-1. Build a *seed solution* with a sweep heuristic: sort customers by angle around the depot, fill the real vehicles one by one (large types first so that large orders find a home), respecting capacity and a route-duration cap (horizon minus a 10 % margin). Customers that do not fit in the real fleet go to *virtual* vehicles (large type) — these exist only to place windows; they are not part of the fleet.
+1. Build a *seed solution* on the real fleet: customers sorted by angle around the depot from a random start; vehicles taken in repeating blocks mirroring the fleet mix, **smallest type first** inside each block (small vehicles fill up on small orders, big orders are deferred to medium/large vehicles); each vehicle takes consecutive customers while capacity and a route-duration cap (horizon minus a 10 % margin) hold; each route is re-ordered with nearest-neighbour + 2-opt. Deferred and leftover customers go to the cheapest feasible insertion in a real route, else to a route opened on an unused real vehicle, else to *virtual* large vehicles — these exist only to place windows and are not part of the fleet.
 2. Each seed route gets a random departure offset within its slack so windows spread over the whole day instead of clustering at 10:00.
-3. Each customer draws a window class from the profile; width: wide U[4 h, 8 h], medium U[1.5 h, 3 h], tight U[30 min, 60 min]. The window is centred on the seed arrival time with a small jitter (±10 % of width), clipped to the horizon, and shifted if needed so that the seed arrival is inside it and `e_i + s_i + t_i0 ≤ closing` holds (a customer is never unreachable by construction).
-4. Consequences: at 60 % and 85 % stress the seed solution serves everyone → *a feasible full-coverage solution exists*; at 105 % the customers on virtual vehicles are feasible in time but the fleet lacks capacity → *unserved customers are by design*. Tight profiles can still make instances time-infeasible even at 60 % — that is the intended experiment, and the time-stress metadata explains it.
-5. The seed solution is written to a sidecar file (`<name>.seed.json`) and used as (a) a smoke test for the validator and plots in Phase 2, and (b) a "generator reference" row in the report. Solvers never read it.
+3. Each customer draws a window class from the profile; width: wide U[4 h, 8 h], medium U[1.5 h, 3 h], tight U[30 min, 60 min]. The window is centred on the seed arrival time with a small jitter (±10 % of width), clipped to the horizon, shifted if needed so that the seed arrival is inside it and `e_i + s_i + t_i0 ≤ closing` holds (a customer is never unreachable by construction), and rounded outwards to whole minutes.
+4. With the windows in place, a second repair pass tries once more to insert the virtual customers into real routes against the actual windows (shared O(1) insertion primitive in `core/insertion.py`).
+5. Consequences (measured on the generated set): at 60 % stress the seed serves everyone → *a feasible full-coverage solution exists*; at 85 % it leaves at most 0.5 % of customers; at 105 % the leftovers (1–20 %, capacity-bound) are over-subscription by design. Tight profiles can still make instances time-infeasible for the solvers — that is the intended experiment, and the time-stress metadata explains it.
+6. The seed solution is written to a sidecar file (`<name>.seed.json`), validated by the independent validator, and used as (a) a smoke test for the validator and plots in Phase 2, and (b) a "generator reference" row in the report. Solvers never read it.
 
 ### 4.5 Instance JSON schema (v1)
 
@@ -330,8 +331,8 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 
 | Phase | Days | Deliverable | Done when |
 |---|---|---|---|
-| 0 — Skeleton | 1 | Repo, package, CLI stub, CI (tests on push), shared core (instance, matrices, cost model, solution schema, validator) | `bench validate` accepts a hand-written toy instance/solution and rejects five deliberately broken ones |
-| 1 — Generator | 1–3 | Polygon, sampling families, demand/fleet sizing, seed solution, windows, JSON, `bench generate` | 108 instances generated in < 5 min; seed solutions pass the validator; summary stats (capacity and time stress, window widths) look as intended |
+| 0 — Skeleton | 1 | Repo, package, CLI stub, CI (tests on push), shared core (instance, matrices, cost model, solution schema, validator) | **Done.** `bench validate` accepts a hand-written toy instance/solution and rejects six deliberately broken ones |
+| 1 — Generator | 1–3 | Polygon, sampling families, demand/fleet sizing, seed solution, windows, JSON, `bench generate` | **Done.** 108 instances in 7 s; all seed solutions pass the validator; `instances/index.csv` holds the statistics |
 | 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | Plots of seed solutions for one instance per family reviewed by you |
 | 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | Valid on all 108; `insertable` = 0 for cw_ls; profile shows < 60 s at n = 600; unit tests for merge/insertion feasibility |
 | 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | Valid on all 108; objective recomputed by validator matches OR-Tools' own within rounding |

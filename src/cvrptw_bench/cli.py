@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -55,7 +56,15 @@ def cmd_info(args: argparse.Namespace) -> int:
     print(f"pair distance   mean {tri.mean() / 1000:.2f} km  max {tri.max() / 1000:.2f} km")
     depot_km = m.dist_m[0, 1:] / 1000
     print(f"depot->customer mean {depot_km.mean():.2f} km  max {depot_km.max():.2f} km")
-    if inst.meta:
+    if "factors" in inst.meta:
+        print("factors         " + json.dumps(inst.meta["factors"]))
+    if "stats" in inst.meta:
+        st = dict(inst.meta["stats"])
+        seed_stats = st.pop("seed_solution", None)
+        print("stats           " + json.dumps(st))
+        if seed_stats:
+            print("seed solution   " + json.dumps(seed_stats))
+    elif inst.meta:
         print("meta            " + json.dumps(inst.meta, ensure_ascii=False)[:300])
     return 0
 
@@ -92,6 +101,28 @@ def cmd_version(_: argparse.Namespace) -> int:
     return 0
 
 
+# --------------------------------------------------------------- generate
+def cmd_generate(args: argparse.Namespace) -> int:
+    from cvrptw_bench.generator import GeneratorConfig, InstanceSpec, design_specs, generate_set
+
+    cfg = GeneratorConfig.load(args.config)
+    if args.seed is not None:
+        cfg.global_seed = args.seed
+    if args.sizes:
+        cfg.design.sizes = [int(x) for x in args.sizes.split(",")]
+    if args.families:
+        cfg.design.families = args.families.split(",")
+    if args.profiles:
+        cfg.design.tw_profiles = args.profiles.split(",")
+    if args.stress:
+        cfg.design.capacity_stress = [int(x) for x in args.stress.split(",")]
+    specs = [InstanceSpec.parse(args.only)] if args.only else design_specs(cfg)
+    t0 = time.perf_counter()
+    instances = generate_set(cfg, args.out, specs)
+    print(f"{len(instances)} instances written to {args.out} in {time.perf_counter() - t0:.1f} s")
+    return 0
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bench", description="CVRPTW heterogeneous-fleet benchmark")
@@ -110,8 +141,18 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("version", help="print the package version")
     s.set_defaults(func=cmd_version)
 
+    s = sub.add_parser("generate", help="generate the benchmark instance set")
+    s.add_argument("--config", type=Path, default=None, help="generator YAML (default: built-in)")
+    s.add_argument("--out", type=Path, default=Path("instances"), help="output directory")
+    s.add_argument("--seed", type=int, default=None, help="override global_seed")
+    s.add_argument("--sizes", type=str, default=None, help="comma-separated sizes, e.g. 100,200")
+    s.add_argument("--families", type=str, default=None, help="e.g. R,C,RC")
+    s.add_argument("--profiles", type=str, default=None, help="e.g. L,M,T")
+    s.add_argument("--stress", type=str, default=None, help="e.g. 60,85,105")
+    s.add_argument("--only", type=str, default=None, help="one instance name, e.g. RC-400-T-105")
+    s.set_defaults(func=cmd_generate)
+
     for name, phase in (
-        ("generate", "Phase 1"),
         ("plot", "Phase 2"),
         ("solve", "Phase 3"),
         ("run", "Phase 6"),
