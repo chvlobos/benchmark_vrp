@@ -20,6 +20,8 @@ from cvrptw_bench.core.matrices import build_matrices
 from cvrptw_bench.core.solution import Solution
 from cvrptw_bench.core.validator import revalidate
 
+BASEMAP_CHOICES = ["esri-gray", "osm", "esri-street", "carto", "none"]
+
 
 def _not_yet(phase: str):
     def _handler(_: argparse.Namespace) -> int:
@@ -138,6 +140,32 @@ def cmd_plot(args: argparse.Namespace) -> int:
     return 0
 
 
+# ------------------------------------------------------------------ solve
+def cmd_solve(args: argparse.Namespace) -> int:
+    from cvrptw_bench.run import load_run_config, solve_one
+
+    inst = Instance.load(args.instance)
+    cfg = load_run_config(args.config)
+    out = args.out or Path("results") / "solve" / inst.name / args.solver
+    sol = solve_one(
+        inst,
+        args.solver,
+        cfg,
+        out_dir=out,
+        seed=args.seed,
+        time_limit_s=args.time_limit,
+        threads=args.threads,
+        plots=not args.no_plots,
+        basemap=args.basemap,
+        dpi=args.dpi,
+        log=print,
+    )
+    if sol.status != "feasible":
+        print(f"solver status: {sol.status} — {sol.message}")
+    print(f"written to {out}")
+    return 0 if sol.validation.valid and sol.status == "feasible" else 1
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bench", description="CVRPTW heterogeneous-fleet benchmark")
@@ -175,7 +203,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     s.add_argument(
         "--basemap",
-        choices=["esri-gray", "osm", "esri-street", "carto", "none"],
+        choices=BASEMAP_CHOICES,
         default="esri-gray",
         help="tile provider for the maps (keyless: esri-gray, osm, esri-street; "
         "carto needs an API key); default esri-gray",
@@ -185,8 +213,25 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--dpi", type=int, default=300)
     s.set_defaults(func=cmd_plot)
 
+    s = sub.add_parser("solve", help="solve one instance with one solver")
+    s.add_argument("instance", type=Path)
+    s.add_argument("--solver", required=True, help="cw | cw_ls | ortools | hexaly")
+    s.add_argument("--config", type=Path, default=None, help="run YAML (default: run.default)")
+    s.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="output dir (default results/solve/<instance>/<solver>)",
+    )
+    s.add_argument("--time-limit", type=float, default=None, help="seconds (default: tier by size)")
+    s.add_argument("--seed", type=int, default=None)
+    s.add_argument("--threads", type=int, default=None)
+    s.add_argument("--no-plots", action="store_true")
+    s.add_argument("--basemap", default=None, choices=BASEMAP_CHOICES)
+    s.add_argument("--dpi", type=int, default=300)
+    s.set_defaults(func=cmd_solve)
+
     for name, phase in (
-        ("solve", "Phase 3"),
         ("run", "Phase 6"),
         ("report", "Phase 6"),
     ):

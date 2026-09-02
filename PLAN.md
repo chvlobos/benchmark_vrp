@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.3 — 2026-09-02 (Phases 0–2 delivered; §3/§8.2 match the implemented validator, §4.3/§4.4 the implemented generator, §8.3 the implemented plots)
+**Status:** plan v1.4 — 2026-09-02 (Phases 0–3 delivered; §6 updated to the implemented heuristic)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -196,6 +196,8 @@ Plain-language version: start with one route per customer (depot → i → depot
 
 Formally, savings are direction-specific (time windows make the problem asymmetric): `s_ij = d_0i + d_j0 − λ·d_ij`, computed only for j in the candidate list of i (and vice-versa) to keep the list at O(n·k) instead of O(n²). A merge A→B is feasible iff `load_A + load_B ≤ cap(largest type)` and `departure_A(last) + t_ij ≤ L_B(first)` — both O(1) thanks to the precomputed arrays. After a merge the route's type is set to the smallest type whose capacity fits, and the forward/backward arrays are recomputed for the merged route (O(route length)).
 
+Merge acceptance is coverage-aware: while there are more routes than vehicles every feasible merge is taken (even with a negative saving); once routes ≤ vehicles a merge is accepted only if it lowers the real cost with the smallest types the loads imply (fixed + per-km), so distance savings cannot push two cheap vans into one expensive truck (this replaces the planned Golden-style cost-aware savings).
+
 Fleet availability is *not* enforced during merging (there are n routes at the start, far more than vehicles). It is repaired afterwards:
 
 1. **Type assignment with availability.** Routes are sorted by number of customers (descending) and each gets the smallest available type that fits its load; a route that fits no remaining vehicle is dismantled and its customers join the *leftover pool*. Greedy by customer count is the right proxy for the primary objective (max customers served); a tiny exact assignment can replace it later if the report shows it matters.
@@ -212,7 +214,8 @@ Variable-neighbourhood descent, first-improvement, candidate lists, evaluated wi
 - Inter-route: relocate (1 customer), swap (1↔1), 2-opt* (exchange tails), Or-opt between routes (chain of 2–3).
 - Intra-route: 2-opt (segment reversal — feasibility re-checked along the reversed segment, O(segment)), Or-opt.
 - Fleet-aware moves: a move that pushes a route above its type's capacity is allowed only if a larger type is available (types are swapped in the fleet ledger); a route left empty releases its vehicle. Explicit *route elimination* move: try to relocate every customer of the smallest route elsewhere (fixed costs make this valuable).
-- Coverage move: after each descent, try to insert each unserved customer (best feasible position, upgrade allowed). Any success restarts the descent.
+- Route split: cut a route in two when both halves ride cheaper vehicles for less total cost (the counterpart of route elimination; needed because CW merges are distance-driven).
+- Coverage move: after each descent, try to insert each unserved customer (best feasible position, upgrade allowed, spare vehicle), then by *ejection*: take the slot of a served neighbour and re-insert that neighbour elsewhere; an exchange that frees capacity (bigger demand out, smaller in) is kept even when the neighbour finds no place. Any success restarts the descent.
 
 Stop: no improving move in any neighbourhood, or a time budget (default 60 s), whichever comes first. The whole CW+LS is expected to run in well under a minute at n = 600 in pure Python + numpy; profiling (cProfile) is part of Phase 3, and the hot loop is written with integer indices and preallocated arrays, no object creation.
 
@@ -334,7 +337,7 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 | 0 — Skeleton | 1 | Repo, package, CLI stub, CI (tests on push), shared core (instance, matrices, cost model, solution schema, validator) | **Done.** `bench validate` accepts a hand-written toy instance/solution and rejects six deliberately broken ones |
 | 1 — Generator | 1–3 | Polygon, sampling families, demand/fleet sizing, seed solution, windows, JSON, `bench generate` | **Done.** 108 instances in 7 s; all seed solutions pass the validator; `instances/index.csv` holds the statistics |
 | 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | **Done.** `viz/` renders map.png (basemap, offline fallback), map.html (folium, per-route layers) and gantt.png (two-level window brackets, unserved lanes); seed solutions of every family rendered and reviewed |
-| 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | Valid on all 108; `insertable` = 0 for cw_ls; profile shows < 60 s at n = 600; unit tests for merge/insertion feasibility |
+| 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | **Done.** Valid on all 108; `insertable` = 0; cw_ls converges in ≤ 20 s at n = 600; 81 tests |
 | 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | Valid on all 108; objective recomputed by validator matches OR-Tools' own within rounding |
 | 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | Adapter imports and builds the model; runs when the key arrives |
 | 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | `report.html` reviewed; repo public |

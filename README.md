@@ -19,8 +19,8 @@ The full design and the phased plan are in [PLAN.md](PLAN.md).
 | 0 | Repository skeleton, shared core (instance schema, integer matrices, solution schema), independent validator, CLI `info`/`validate`, tests, CI | **done** |
 | 1 | Instance generator (Greater Santiago polygon, R/C/RC families, window profiles, fleet sizing, seed solutions); the 108-instance set under `instances/` | **done** |
 | 2 | Maps (PNG + HTML) and x-t Gantt plots; `bench plot` | **done** |
-| 3 | Clarke-Wright + local search | next |
-| 4 | OR-Tools adapter | |
+| 3 | Clarke-Wright (`cw`) and Clarke-Wright + local search (`cw_ls`); `bench solve` | **done** |
+| 4 | OR-Tools adapter | next |
 | 5 | Hexaly adapter | |
 | 6 | Full run, HTML report | |
 
@@ -54,7 +54,7 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 67 tests
+pytest -q                   # 81 tests
 ```
 
 Hexaly is optional: `pip install hexaly` plus a license key, see Phase 5.
@@ -84,6 +84,44 @@ bench plot instances/RC-400-T-105.seed.json --instance instances/RC-400-T-105.js
 Colour is the same in every figure: blue = small vehicle, orange = medium, aqua = large,
 hollow red = unserved customer, black square = depot. Routes are drawn as straight segments
 between stops because the benchmark's travel model is great-circle × 1.3, not the road network.
+
+```bash
+bench solve instances/RC-400-T-105.json --solver cw_ls          # -> results/solve/RC-400-T-105/cw_ls/
+bench solve instances/RC-400-T-105.json --solver cw --time-limit 30 --no-plots --out /tmp/x
+```
+
+`bench solve` runs one solver on one instance with the time limit of its size tier
+(`configs/run.default.yaml`: 60 s up to 200 customers, 120 s up to 400, 180 s up to 600),
+evaluates the plan with the validator and writes `solution.json` plus the three plots.
+
+## The own heuristic: `cw` and `cw_ls`
+
+`cw` is Clarke-Wright savings adapted to hard time windows and a limited heterogeneous fleet
+(`solvers/clarke_wright.py`). Start with one route per customer; for every pair (i, j) with j
+among the 30 nearest neighbours of i, the saving of driving i → j instead of returning to the
+depot is `d0i + dj0 − λ·dij`; pairs are taken from the largest saving down and the two routes are
+joined when the joined load fits *some* vehicle type and every stop stays inside its window —
+an O(1) check from the earliest departure at i and the latest feasible start at j. Two things
+differ from the textbook: while there are more routes than vehicles every feasible merge is
+taken (coverage first), and once routes ≤ vehicles a merge must lower the real cost with the
+types the loads imply (fixed + per-km), so distance savings cannot push two cheap vans into one
+expensive truck. Vehicle types and availability are settled afterwards: each route takes the
+smallest available type that fits (largest routes first), routes left without a vehicle are
+dismantled and their customers re-inserted at the cheapest feasible place — in a route, in a
+route upgraded to a bigger spare vehicle, or alone on a spare vehicle — and whatever still does
+not fit is reported unserved. Multi-start: run 0 is the deterministic classic (λ = 1), the next
+19 draw λ ∈ [0.6, 1.4] and perturb the savings by ±10 %; best plan by (served, −cost) wins.
+
+`cw_ls` continues from the `cw` starts with a variable-neighbourhood descent
+(`solvers/local_search.py`): relocate, swap, 2-opt*, or-opt (chains of 2–3), intra-route 2-opt,
+route split (two halves on cheaper vehicles), route elimination, vehicle re-typing, and after
+every descent an insertion pass for the unserved customers (direct, by upgrading a vehicle, on a
+spare vehicle, or by ejecting a neighbour that fits elsewhere). Moves are restricted to the 30
+nearest neighbours, inter-route feasibility is O(1) from per-route forward/backward arrays,
+first improvement, strict lexicographic acceptance (served, then cost). One descent converges in
+1–25 s on this set (n = 100 … 600) and cuts the `cw` cost by 5–25 %; the rest of the 60 s budget
+is spent the simple way — the descent is run again from the next-best `cw` starts and the best
+final plan is kept — which on the tight instances recovers the last one or two customers.
 
 ## The instance set
 
@@ -141,10 +179,11 @@ src/cvrptw_bench/
   core/       instance.py  matrices.py  solution.py  validator.py  insertion.py
   generator/  config.py  geo.py  sampling.py  demand.py  seed_solution.py  windows.py  generate.py
   data/       santiago_urban.geojson
-  solvers/    base.py  (adapters arrive in Phases 3-5)
+  solvers/    base.py  routes.py  clarke_wright.py  local_search.py  (ortools, hexaly: Phases 4-5)
+  run.py      solve_one: time-limit tiers, solver params, artefacts
   viz/        style.py  map_static.py  map_html.py  gantt.py
   report/     (Phase 6)
-  cli.py      bench info | validate | generate | plot | version  (+ solve | run | report later)
+  cli.py      bench info | validate | generate | plot | solve | version  (+ run | report later)
 configs/      generator.default.yaml  run.default.yaml
 tests/        pytest suite; tests/data holds a hand-checked toy instance and broken solutions
 instances/    the 108-instance benchmark set + seed solutions + index.csv

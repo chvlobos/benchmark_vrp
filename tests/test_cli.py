@@ -36,7 +36,7 @@ def test_validate_broken(capsys, name):
 
 
 def test_not_implemented_commands(capsys):
-    for cmd in ("solve", "run", "report"):
+    for cmd in ("run", "report"):
         assert main([cmd]) == 2
     assert "not implemented yet" in capsys.readouterr().err
 

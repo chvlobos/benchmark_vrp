@@ -22,7 +22,7 @@ from cvrptw_bench.core.matrices import Matrices
 
 
 class RouteSchedule:
-    __slots__ = ("m", "seq", "capacity", "h0", "h1", "load", "dep", "L")
+    __slots__ = ("m", "seq", "capacity", "h0", "h1", "load", "dep", "L", "cumload")
 
     def __init__(self, m: Matrices, seq: list[int], capacity: int, h0: int, h1: int):
         self.m = m
@@ -33,19 +33,23 @@ class RouteSchedule:
         self.load = 0
         self.dep = np.empty(0, dtype=np.int64)  # earliest departure from each stop
         self.L = np.empty(0, dtype=np.int64)  # latest feasible service start at each stop
+        self.cumload = np.empty(0, dtype=np.int64)  # load carried up to and including each stop
         self.recompute()
 
     # ------------------------------------------------------------- state
     def recompute(self) -> None:
         m, seq = self.m, self.seq
         k = len(seq)
-        self.load = int(m.demand[seq].sum()) if k else 0
         dep = np.empty(k, dtype=np.int64)
+        cum = np.empty(k, dtype=np.int64)
         t = self.h0
         prev = 0
+        load = 0
         for i, c in enumerate(seq):
             t = max(t + int(m.time_s[prev, c]), int(m.tw_start[c])) + int(m.service[c])
             dep[i] = t
+            load += int(m.demand[c])
+            cum[i] = load
             prev = c
         L = np.empty(k, dtype=np.int64)
         limit = self.h1
@@ -55,7 +59,7 @@ class RouteSchedule:
             L[i] = min(int(m.tw_end[c]), limit - int(m.service[c]) - int(m.time_s[c, nxt]))
             limit = L[i]
             nxt = c
-        self.dep, self.L = dep, L
+        self.dep, self.L, self.cumload, self.load = dep, L, cum, load
 
     @property
     def feasible(self) -> bool:
@@ -109,6 +113,47 @@ class RouteSchedule:
                 best = (d, pos)
         return best
 
+    def segment_insertion_feasible(
+        self, seg: list[int], pos: int, check_capacity: bool = True
+    ) -> bool:
+        """Insert the ordered segment ``seg`` between positions pos-1 and pos (time + capacity)."""
+        m = self.m
+        if check_capacity and self.load + int(m.demand[seg].sum()) > self.capacity:
+            return False
+        seq = self.seq
+        if pos == 0:
+            t, prev = self.h0, 0
+        else:
+            t, prev = int(self.dep[pos - 1]), seq[pos - 1]
+        for c in seg:
+            start = max(t + int(m.time_s[prev, c]), int(m.tw_start[c]))
+            if start > m.tw_end[c]:
+                return False
+            t = start + int(m.service[c])
+            prev = c
+        if pos == len(seq):
+            return t + int(m.time_s[prev, 0]) <= self.h1
+        return t + int(m.time_s[prev, seq[pos]]) <= self.L[pos]
+
+    def replace_feasible(self, pos: int, c: int) -> bool:
+        """Replace the stop at ``pos`` by customer ``c`` (time + capacity), O(1)."""
+        m = self.m
+        seq = self.seq
+        old = seq[pos]
+        if self.load - int(m.demand[old]) + int(m.demand[c]) > self.capacity:
+            return False
+        if pos == 0:
+            prev_dep, prev = self.h0, 0
+        else:
+            prev_dep, prev = int(self.dep[pos - 1]), seq[pos - 1]
+        start = max(prev_dep + int(m.time_s[prev, c]), int(m.tw_start[c]))
+        if start > m.tw_end[c]:
+            return False
+        leave = start + int(m.service[c])
+        if pos == len(seq) - 1:
+            return leave + int(m.time_s[c, 0]) <= self.h1
+        return leave + int(m.time_s[c, seq[pos + 1]]) <= self.L[pos + 1]
+
     def insert(self, c: int, pos: int) -> None:
         self.seq.insert(pos, c)
         self.recompute()
@@ -117,3 +162,7 @@ class RouteSchedule:
         c = self.seq.pop(pos)
         self.recompute()
         return c
+
+    def set_seq(self, seq: list[int]) -> None:
+        self.seq = list(seq)
+        self.recompute()

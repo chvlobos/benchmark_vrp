@@ -115,7 +115,7 @@ def get_solver(name: str) -> Solver:
 def _import_adapters() -> None:
     import importlib
 
-    for mod in ("clarke_wright", "ortools_solver", "hexaly_solver"):
+    for mod in ("clarke_wright", "local_search", "ortools_solver", "hexaly_solver"):
         try:
             importlib.import_module(f"cvrptw_bench.solvers.{mod}")
         except ImportError:
