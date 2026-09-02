@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.4 — 2026-09-02 (Phases 0–3 delivered; §6 updated to the implemented heuristic)
+**Status:** plan v1.5 — 2026-09-02 (Phases 0–3 delivered; §6 updated to the implemented heuristic; one time limit for all solvers)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -217,7 +217,7 @@ Variable-neighbourhood descent, first-improvement, candidate lists, evaluated wi
 - Route split: cut a route in two when both halves ride cheaper vehicles for less total cost (the counterpart of route elimination; needed because CW merges are distance-driven).
 - Coverage move: after each descent, try to insert each unserved customer (best feasible position, upgrade allowed, spare vehicle), then by *ejection*: take the slot of a served neighbour and re-insert that neighbour elsewhere; an exchange that frees capacity (bigger demand out, smaller in) is kept even when the neighbour finds no place. Any success restarts the descent.
 
-Stop: no improving move in any neighbourhood, or a time budget (default 60 s), whichever comes first. The whole CW+LS is expected to run in well under a minute at n = 600 in pure Python + numpy; profiling (cProfile) is part of Phase 3, and the hot loop is written with integer indices and preallocated arrays, no object creation.
+Stop: no improving move in any neighbourhood; then the descent is repeated from the next-best constructive start (fresh starts when the 20 are exhausted) until the common time limit — the same cap OR-Tools and Hexaly get. The whole CW+LS is expected to run in well under a minute at n = 600 in pure Python + numpy; profiling (cProfile) is part of Phase 3, and the hot loop is written with integer indices and preallocated arrays, no object creation.
 
 ### 6.5 Known limitations (stated in the report)
 
@@ -234,7 +234,7 @@ Savings are distance-based; the type-dependent cost is only felt at type assignm
 - Capacity: one dimension with per-vehicle capacities from the type.
 - Time: dimension with transit = travel + service of the origin, slack unbounded (waiting), cumul windows per customer, `[opening, closing]` at each vehicle start and end; start cumul left free (late departure allowed).
 - Unserved: `AddDisjunction([node], penalty)` with `penalty = 10 × (Σ fixed costs + Σ_i max_j cost_large[i][j])`, so every served customer beats any cost.
-- Search: `PATH_CHEAPEST_ARC` + `GUIDED_LOCAL_SEARCH`, time limit by size (default 60 s for n ≤ 200, 120 s for 400, 180 s for 600; configurable, and given no compute limit a 300 s tier is a one-line change). `AddAtSolutionCallback` records `(elapsed, objective)` for time-to-best and the convergence trace. Single-threaded (OR-Tools local search is).
+- Search: `PATH_CHEAPEST_ARC` + `GUIDED_LOCAL_SEARCH`, time limit by size (default 60 s for n ≤ 200, 120 s for 400, 180 s for 600; configurable, and given no compute limit a 300 s tier is a one-line change). **The same tier limit is the cap for every solver** (decision 2026-09-02: comparisons must be fair); `cw` stops after its 20 starts and reports its shorter wall time, `cw_ls` uses the limit fully with successive starts. `AddAtSolutionCallback` records `(elapsed, objective)` for time-to-best and the convergence trace. Single-threaded (OR-Tools local search is).
 - Output mapped to the common `Solution`, then validated.
 
 ### 7.2 Hexaly (Python SDK `hexaly`, v15)

@@ -35,14 +35,16 @@ from cvrptw_bench.core.matrices import Matrices
 from cvrptw_bench.core.solution import RoutePlan
 from cvrptw_bench.solvers.base import ProgressCallback, register
 from cvrptw_bench.solvers.clarke_wright import (
+    DEFAULTS,
     ClarkeWrightSolver,
     CWState,
+    construct,
     insert_leftovers,
     multistart,
 )
 from cvrptw_bench.solvers.routes import Fleet, VehicleRoute, segment_cost
 
-LS_DEFAULTS = {"time_budget_s": 60.0, "neighbours": 30, "report_interval_s": 0.5}
+LS_DEFAULTS = {"neighbours": 30, "report_interval_s": 0.5}
 
 
 class LocalSearch:
@@ -590,28 +592,43 @@ class LocalSearch:
 
 @register
 class ClarkeWrightLSSolver(ClarkeWrightSolver):
-    """Local search from the best constructive starts, until the time budget is spent.
+    """Local search from successive constructive starts until the common time limit.
 
-    The descent converges long before the budget on this set, so the remaining
+    A descent converges long before the limit on this set, so the remaining
     time is used the simple way: run it again from the next-best Clarke-Wright
     start (different λ and savings noise leave different customers out and
-    different route shapes), keep the best final plan by (served, −cost).
+    give different route shapes); when the precomputed starts are exhausted,
+    fresh ones are built on the fly. The best final plan by (served, −cost)
+    is returned. Every solver in the benchmark gets the same wall-clock cap.
     """
 
     name = "cw_ls"
-    version = "0.2.0"
+    version = "0.3.0"
 
     def _solve(self, instance, matrices, config, report):
         t0 = time.perf_counter()
-        p = {**LS_DEFAULTS, **config.params}
+        p = {**LS_DEFAULTS, **DEFAULTS, **config.params}
+        deadline = t0 + float(config.time_limit_s)
         states = multistart(instance, matrices, config, report, t0=t0, keep_all=True)
-        budget = min(float(p["time_budget_s"]), float(config.time_limit_s))
-        deadline = t0 + budget
+        rng = np.random.default_rng(config.seed + 1000)
+        lo, hi = p["lambda_range"]
         best_key: tuple[int, int] | None = None
         best_plan: RoutePlan | None = None
-        for i, state in enumerate(states):
+        i = 0
+        while True:
             if i > 0 and time.perf_counter() >= deadline:
                 break
+            if i < len(states):
+                state = states[i]
+            else:  # starts exhausted: build a fresh one
+                state = construct(
+                    instance,
+                    matrices,
+                    lam=float(rng.uniform(lo, hi)),
+                    seed=int(rng.integers(2**31 - 1)),
+                    noise=float(p["savings_noise"]),
+                    k=int(p["neighbours"]),
+                )
             ls = LocalSearch(
                 instance,
                 matrices,
@@ -630,5 +647,6 @@ class ClarkeWrightLSSolver(ClarkeWrightSolver):
                 best_key, best_plan = key, ls.plan()
                 if report is not None:
                     report(time.perf_counter() - t0, key[0], -key[1])
+            i += 1
         assert best_plan is not None
         return best_plan

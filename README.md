@@ -93,6 +93,8 @@ bench solve instances/RC-400-T-105.json --solver cw --time-limit 30 --no-plots -
 `bench solve` runs one solver on one instance with the time limit of its size tier
 (`configs/run.default.yaml`: 60 s up to 200 customers, 120 s up to 400, 180 s up to 600),
 evaluates the plan with the validator and writes `solution.json` plus the three plots.
+**The same limit applies to every solver** — it is a cap: `cw` finishes its 20 starts in
+seconds and reports that; `cw_ls`, OR-Tools and Hexaly use it fully.
 
 ## The own heuristic: `cw` and `cw_ls`
 
@@ -119,9 +121,10 @@ every descent an insertion pass for the unserved customers (direct, by upgrading
 spare vehicle, or by ejecting a neighbour that fits elsewhere). Moves are restricted to the 30
 nearest neighbours, inter-route feasibility is O(1) from per-route forward/backward arrays,
 first improvement, strict lexicographic acceptance (served, then cost). One descent converges in
-1–25 s on this set (n = 100 … 600) and cuts the `cw` cost by 5–25 %; the rest of the 60 s budget
-is spent the simple way — the descent is run again from the next-best `cw` starts and the best
-final plan is kept — which on the tight instances recovers the last one or two customers.
+1–25 s on this set (n = 100 … 600) and cuts the `cw` cost by 5–25 %; the rest of the common time
+limit is spent the simple way — the descent is run again from the next-best `cw` starts (fresh
+ones are built when the 20 are exhausted) and the best final plan is kept — which on the tight
+instances recovers the last one or two customers.
 
 ## The instance set
 

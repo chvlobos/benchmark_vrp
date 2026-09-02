@@ -4,6 +4,8 @@ seed: 42
 solvers: [cw, cw_ls, ortools, hexaly]
 
 # Wall-clock limit per instance, by instance size (upper bound of each tier, inclusive).
+# The SAME limit applies to every solver (cw, cw_ls, ortools, hexaly): it is a cap, and a
+# solver that finishes earlier simply reports a shorter wall time.
 time_limits_s:
   200: 60
   400: 120
@@ -12,15 +14,13 @@ time_limits_s:
 
 threads: 1                            # primary comparison is single-threaded
 
-cw:
+cw:                                   # constructive only: 20 starts, usually done in seconds
   multistart_runs: 20
-  multistart_time_budget_s: 30
   lambda_range: [0.6, 1.4]
   savings_noise: 0.10
   neighbours: 30
 
-cw_ls:
-  time_budget_s: 60
+cw_ls:                                # local search from successive starts until the time limit
   neighbours: 30
 
 ortools:

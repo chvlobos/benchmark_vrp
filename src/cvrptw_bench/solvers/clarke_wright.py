@@ -25,7 +25,9 @@ Two departures from the textbook, both forced by the problem:
 
 Multi-start: run 0 is the deterministic classic (λ = 1); the others draw
 λ ~ U[lo, hi] and perturb every saving by U[1−ε, 1+ε]; the best plan by
-(served, −cost) wins.
+(served, −cost) wins. ``cw`` runs a fixed number of starts (20) within the
+common time limit and usually finishes in seconds — its wall time is reported
+as such; the limit is a cap shared by every solver, not a target.
 """
 
 from __future__ import annotations
@@ -43,7 +45,6 @@ from cvrptw_bench.solvers.routes import Fleet, VehicleRoute
 
 DEFAULTS = {
     "multistart_runs": 20,
-    "multistart_time_budget_s": 30.0,
     "lambda_range": (0.6, 1.4),
     "savings_noise": 0.10,
     "neighbours": 30,
@@ -311,7 +312,7 @@ def multistart(
     """Best constructive state (or, with ``keep_all``, all of them sorted best first)."""
     p = {**DEFAULTS, **config.params}
     runs = int(p["multistart_runs"])
-    budget = min(float(p["multistart_time_budget_s"]), float(config.time_limit_s))
+    budget = float(config.time_limit_s)  # the same cap every solver gets
     lo, hi = p["lambda_range"]
     noise = float(p["savings_noise"])
     k = int(p["neighbours"])

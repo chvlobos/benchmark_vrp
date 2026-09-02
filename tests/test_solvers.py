@@ -12,7 +12,7 @@ from cvrptw_bench.solvers.local_search import LocalSearch
 from cvrptw_bench.solvers.routes import Fleet, VehicleRoute
 
 INSTANCES = Path("instances")
-FAST = {"multistart_runs": 5, "multistart_time_budget_s": 5, "time_budget_s": 10}
+FAST = {"multistart_runs": 5}
 
 
 def _load(name):
@@ -73,7 +73,7 @@ def test_construct_toy_full_coverage(toy_instance, toy_matrices):
 @pytest.mark.parametrize("solver", ["cw", "cw_ls"])
 def test_solvers_toy(toy_instance, toy_matrices, solver):
     plan, run = get_solver(solver).solve(
-        toy_instance, toy_matrices, SolverConfig(seed=1, params=FAST)
+        toy_instance, toy_matrices, SolverConfig(time_limit_s=2, seed=1, params=FAST)
     )
     sol = evaluate(toy_instance, plan, run, toy_matrices)
     assert run.status == "feasible" and sol.validation.valid and sol.metrics["served"] == 6
@@ -88,7 +88,7 @@ def test_solvers_on_small_instances(name):
     results = {}
     for solver in ("cw", "cw_ls"):
         plan, run = get_solver(solver).solve(
-            inst, m, SolverConfig(time_limit_s=30, seed=7, params=FAST)
+            inst, m, SolverConfig(time_limit_s=8, seed=7, params=FAST)
         )
         sol = evaluate(inst, plan, run, m)
         assert run.status == "feasible", run.message
@@ -112,8 +112,8 @@ def test_solvers_on_small_instances(name):
 @pytest.mark.skipif(not INSTANCES.exists(), reason="instance set not generated")
 def test_solver_is_deterministic():
     inst, m = _load("C-100-M-85")
-    a, _ = get_solver("cw").solve(inst, m, SolverConfig(seed=3, params=FAST))
-    b, _ = get_solver("cw").solve(inst, m, SolverConfig(seed=3, params=FAST))
+    a, _ = get_solver("cw").solve(inst, m, SolverConfig(time_limit_s=5, seed=3, params=FAST))
+    b, _ = get_solver("cw").solve(inst, m, SolverConfig(time_limit_s=5, seed=3, params=FAST))
     assert a.routes == b.routes
 
 
@@ -155,7 +155,7 @@ def test_cli_solve(tmp_path, capsys):
             "--out",
             str(tmp_path),
             "--time-limit",
-            "5",
+            "2",
             "--no-plots",
         ]
     )
