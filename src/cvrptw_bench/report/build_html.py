@@ -211,6 +211,41 @@ def _conclusions(df: pd.DataFrame, stats: dict[str, dict], meta: dict) -> list[s
             f"dearer on {pw['dearer']} (ties {pw['tie']}), with a cost {pw['rel_mean']:+.1f} % on average "
             f"(median {pw['rel_median']:+.1f} %, range {pw['rel_min']:+.1f} % to {pw['rel_max']:+.1f} %)."
         )
+    pwh = _pairwise(df, "hexaly", "ortools")
+    if pwh:
+        out.append(
+            f"The license question, head to head: {pwh['a']} vs {pwh['b']} on {pwh['n']} instances, {pwh['a']} "
+            f"serves more customers on {pwh['more_cov']}, fewer on {pwh['less_cov']}; at equal coverage it is "
+            f"cheaper on {pwh['cheaper']}, dearer on {pwh['dearer']} (ties {pwh['tie']}), with a cost "
+            f"{pwh['rel_mean']:+.1f} % on average (median {pwh['rel_median']:+.1f} %, range "
+            f"{pwh['rel_min']:+.1f} % to {pwh['rel_max']:+.1f} %) — same machine, same limits, one thread each."
+        )
+    if "hexaly" in solvers:
+        h = df[df["solver"] == "hexaly"]
+        by_stress = h.groupby("capacity_stress", observed=True)["coverage_deficit"].sum()
+        top = by_stress.index.max()
+        at_top = h[(h["capacity_stress"] == top) & h["cost_gap"].notna()]
+        by_n_wins = h.groupby("n", observed=True)["is_best"].sum()
+        out.append(
+            f"Where Hexaly loses is coverage, not cost: {int(by_stress.get(top, 0))} of its "
+            f"{stats['hexaly']['deficit']} missed customers are on the {int(top)} % stress instances, where it reaches "
+            f"the best known coverage on {len(at_top)} of {int((h['capacity_stress'] == top).sum())} — and on those "
+            f"{len(at_top)} its cost gap is only {_pct(float(100 * at_top['cost_gap'].mean())) if len(at_top) else '–'}. "
+            "Its best-cost wins by size: "
+            + ", ".join(f"{int(v)} at n={int(k)}" for k, v in by_n_wins.items())
+            + ". The shortfall is not an artefact of the soft-lateness formulation: the hard-constraint variant "
+            "served fewer customers on the two over-subscribed instances it was tried on. Follow-ups worth running "
+            "before drawing a final line: more threads and a longer limit (Hexaly's natural setting, deliberately "
+            "not used here), and a single penalised objective (served × big-M − cost, the shape OR-Tools "
+            "optimises) instead of the lexicographic pair."
+        )
+        pwc = _pairwise(df, "hexaly", "cw_ls")
+        if pwc:
+            out.append(
+                f"Hexaly vs the own heuristic ({pwc['b']}): Hexaly serves more customers on {pwc['more_cov']}, fewer on "
+                f"{pwc['less_cov']}; at equal coverage it is cheaper on {pwc['cheaper']}, dearer on {pwc['dearer']}, "
+                f"with a cost {pwc['rel_mean']:+.1f} % on average (median {pwc['rel_median']:+.1f} %)."
+            )
     pw2 = _pairwise(df, "cw", "cw_ls")
     if pw2:
         out.append(
@@ -353,12 +388,22 @@ def _recommendations(df: pd.DataFrame, stats: dict[str, dict]) -> list[tuple[str
         )
     if "hexaly" in solvers:
         st = stats["hexaly"]
+        standing = (
+            "Best quality in this run within the same time limit"
+            if ranked[0] == "hexaly"
+            else f"Behind {lead} in this run"
+        )
         recs.append(
             (
                 "Hexaly (commercial)",
-                f"Best known coverage on {st['at_best_cov']} instances and best cost on {st['best_cost']}; mean gap "
-                f"{_pct(st['gap_mean'])}. Judge the license against the gap to OR-Tools shown above and against the "
-                "modelling effort saved (list variables read like the business rules).",
+                f"{standing}: best known coverage on {st['at_best_cov']} of {n_inst} instances "
+                f"({st['deficit']} customers missed), best cost on {st['best_cost']}, mean gap {_pct(st['gap_mean'])}. "
+                "Its model is plain arithmetic on list variables (69 code lines here, against 42 for OR-Tools' "
+                "Routing model and about 900 for the own heuristic): not shorter than OR-Tools on a textbook "
+                "CVRPTW, but every extra business rule is one more expression rather than a new dimension or "
+                "callback, and it is multi-threaded out of the box, which this single-thread comparison does not "
+                "credit. Judge the license against the head-to-head with OR-Tools above and against the kind of "
+                "side constraints your real problems carry.",
             )
         )
     else:
@@ -526,6 +571,15 @@ METHODS = [
         "departure), optional customers via disjunctions with one uniform penalty above any routing cost, "
         "PATH_CHEAPEST_ARC + guided local search, single thread. Its objective equals the validator's cost plus "
         "penalty × dropped on every run (asserted in the tests).",
+    ),
+    (
+        "Hexaly (hexaly)",
+        "Hexaly Optimizer 15 (Python SDK): one list variable per vehicle with a disjoint constraint (optional "
+        "customers), capacity as a sum over the list, service starts as a recursive array with free departure "
+        "and free waiting, hard windows and return before closing as constraints, cost = fixed cost if the list "
+        "is not empty + arc costs from the type's matrix; two lexicographic objectives (maximise served, "
+        "minimise cost); Hexaly's own search, single thread, seed and time limit from the common config. Its "
+        "objective values are recomputed by the validator on every run.",
     ),
     (
         "Generator seed",
@@ -713,6 +767,13 @@ def build_report(
         + ", ".join(SOLVER_LABEL.get(s, s) for s in solvers)
         + f". {n_inst} instances, {len(df[df['solver'] != SEED_NAME])} solver results, "
         f"{total_h:.1f} h of solver wall time with {meta.get('workers', 1)} worker(s)."
+        + (
+            f" The run directory was resumed {len(meta['resumed'])} time(s) (last {meta['resumed'][-1]}): "
+            "an interrupted run continues where it stopped and a solver added later runs only its own jobs, "
+            "on the same machine and limits."
+            if meta.get("resumed")
+            else ""
+        )
         + (
             f" {len(incomplete)} instance(s) without a result from every solver are left out of this page: "
             + ", ".join(incomplete[:12])

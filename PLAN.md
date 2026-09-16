@@ -1,7 +1,7 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 ## Clarke-Wright (own implementation) vs OR-Tools vs Hexaly
 
-**Status:** plan v1.7 — 2026-09-02 (Phases 0–4 and 6 delivered — full run of cw / cw_ls / ortools on the 108 instances and the report are in `results/final/`; Phase 5 Hexaly waits for the license and then only adds its column)
+**Status:** plan v1.9 — 2026-09-16 (all phases delivered; `results/final/` holds the four-solver run — cw / cw_ls / ortools of 2026-09-02 plus the Hexaly column added on 2026-09-16 on the same 2-core machine, same limits, one thread — and `report.html`; open follow-ups in §12)
 **Owner:** Christian Villalobos
 **Scope of this document:** the working plan agreed after a 64-question requirements interview. Section 2 is the decision log (what was decided and why); the rest is the design and the phased delivery plan. Everything here is the contract for implementation; anything not listed under "Open points" is settled.
 
@@ -246,7 +246,7 @@ Written from the documented CVRPTW example and left untested until the license a
 - Objectives, in order: `maximize served`, `minimize Σ_v (used_v × fixed_v + Σ arc costs)`.
 - Same time limit as OR-Tools per instance; `nb_threads = 1` for the primary comparison (fairness with single-threaded OR-Tools), plus an optional multi-thread run as a secondary experiment if time allows — Hexaly's parallelism is part of its value proposition and deserves its own row.
 - Progress callback (`ITERATION_TICKED` / `TIME_TICKED`) records time-to-best.
-- Whether the free/trial edition of the pip package can solve small instances without a key is checked in Phase 5; if so, the adapter is smoke-tested on an n = 25 instance before the license arrives.
+- Checked in Phase 5: the pip package (`hexaly` 15.0 on PyPI) has no trial mode — creating the optimizer without a license fails — so the adapter was written blind and dry-run against a fake model (structure: 1 disjoint + 3 constraints per vehicle, 2 objectives); the first real run is on the licensed machine. Hexaly counts a lambda's parameters with `inspect.signature`, so lambdas capture through closure scope, never default arguments. Compared against Hexaly's published CVRPTW template (2026-09-15): same list/`at`/recursive-array idioms; deliberate differences are `disjoint` + maximise served (optional customers), per-vehicle capacity and per-type cost matrices, fixed cost instead of vehicle count, integer CLP; the template's soft-lateness-objective treatment of the windows is now the default (`hexaly.time_windows: soft`), with `hard` constraints as the alternative. Picked on 2026-09-16 with the license, three instances at the common limits, one thread (`configs/run.hexaly_hard.yaml` for the hard side): soft 200/634 804 · 198/690 863 · 395/1 328 209 vs hard 200/638 646 · 196/692 187 · 394/1 309 748 on C-200-M-85 · RC-200-T-105 · R-400-T-105 → soft wins on all three (coverage first) and stays the default. All six Hexaly tests passed at the first licensed run (both modes build, toy optimum 119 546 reached, objective == validator, RC-100-T-105 valid inside the limit). Decision 2026-09-15, superseded 2026-09-16: the license turned out to work in the same container that produced the 324 open-source results, so the Hexaly column was added there with `bench run --solvers hexaly` (resume; identical hardware and limits) instead of re-running everything on the Mac. Headline (108 instances, one thread): OR-Tools best coverage 108/108, best cost 74, mean gap 0.8 %; Hexaly best coverage 78/108 (51 customers missed, 50 of them at 105 % stress), best cost 20, mean gap 3.2 % (1.4 % at n = 600), +2.2 % vs OR-Tools at equal coverage, a draw with cw_ls on cost; cw_ls 89/108, 24 missed, 2.9 %; cw 71 missed, 19.3 %. Solver-reported (served, cost) == validator on all 432.
 
 ### 7.3 Common runner
 
@@ -339,10 +339,10 @@ Python 3.11. Dependencies: numpy, shapely, pydantic (schema), pyyaml, matplotlib
 | 2 — Plots | 3–4 | Static map, HTML map, Gantt; `bench plot` | **Done.** `viz/` renders map.png (basemap, offline fallback), map.html (folium, per-route layers) and gantt.png (two-level window brackets, unserved lanes); seed solutions of every family rendered and reviewed |
 | 3 — Clarke-Wright | 4–7 | CW multi-start, type/availability repair, leftover insertion, LS, `bench solve --solver cw|cw_ls` | **Done.** Valid on all 108; `insertable` = 0; cw_ls converges in ≤ 20 s at n = 600; 81 tests |
 | 4 — OR-Tools | 7–9 | Adapter, callbacks, time limits, mapping to schema | **Done.** Objective recomputed by the validator equals OR-Tools' own exactly (asserted in tests); matrices registered in C++; 86 tests |
-| 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | Adapter imports and builds the model; runs when the key arrives |
-| 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | **Done (without Hexaly).** `bench run` (resumable, parallel, log.jsonl + run_meta.json) and `bench report` (coverage-first gaps, per-factor tables and box plots, performance profiles, time-to-best, convergence, gallery, data-driven conclusions, CSV twins); 324/324 results valid; OR-Tools at best coverage on 108/108 with the best cost on 88, CW+LS within 2.5 % on average (24 customers missed, all at 105 % stress), CW 18.8 % / 71 missed in ~1 s; 93 tests; report in `results/final/` |
+| 5 — Hexaly | 9–10 | Adapter written from docs; skip-if-no-license test; smoke test if the trial edition allows | **Done (2026-09-15).** `solvers/hexaly_solver.py` as in §7.2 (disjoint lists, recursive start times, hard windows, lexicographic served → cost, nb_threads 1, TIME_TICKED trace); license via HX_LICENSE_PATH / `hexaly.license_path`; tests skip without a license (the pip package has no trial mode: `HexalyOptimizer()` needs the key). First licensed run on Christian's Mac |
+| 6 — Run & report | 10–14 | Resumable full run (CW, CW+LS, OR-Tools; Hexaly when available), report builder, README with results | **Done; Hexaly column added 2026-09-16 (same machine, resume).** `bench run` (resumable, parallel, log.jsonl + run_meta.json) and `bench report` (coverage-first gaps, per-factor tables and box plots, performance profiles, time-to-best, convergence, gallery, data-driven conclusions, CSV twins); 324/324 results valid; OR-Tools at best coverage on 108/108 with the best cost on 88, CW+LS within 2.5 % on average (24 customers missed, all at 105 % stress), CW 18.8 % / 71 missed in ~1 s; 93 tests; report in `results/final/` |
 
-When the Hexaly license arrives, Phase 5 delivers the adapter and `bench run --out results/final --solvers hexaly` adds only the Hexaly column to the published run (resume is the default); `bench report results/final` rebuilds the report.
+Follow-ups (secondary experiments, clearly labelled as not equal-footing): Hexaly with `nb_threads` = core count; a longer tier for n = 600 for every solver; a single penalised objective for Hexaly (served × big-M − cost); optionally the whole four-solver run on a faster desktop (`bench run --out results/run_<host> ...`) to see all methods more converged at the same limits.
 
 ---
 
@@ -366,6 +366,7 @@ When the Hexaly license arrives, Phase 5 delivers the adapter and `bench run --o
 3. Time-limit tiers: 60 / 60 / 120 / 180 s for n = 100 / 200 / 400 / 600 (an optional 300–600 s tier for n = 600 if the traces show under-convergence).
 4. Cluster parameters (k, σ) and window widths are generator config; defaults in §4.
 5. The seed (sweep) solution is shown in the report as a reference row. Assumed yes.
+6. (2026-09-16) Secondary Hexaly experiments before the license decision: `nb_threads` = core count; longer n = 600 tier for all solvers; single penalised objective. Not run yet — reported separately from the equal-footing table if run.
 
 ---
 

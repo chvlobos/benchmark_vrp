@@ -1,14 +1,14 @@
 # CVRPTW-HF Benchmark — Santiago, Chile
 
 Capacitated Vehicle Routing with Time Windows and a **heterogeneous fleet**, on synthetic
-instances located in Greater Santiago, solved three ways and compared on identical numbers:
+instances located in Greater Santiago, solved four ways and compared on identical numbers:
 
 | Method | What it is |
 |---|---|
 | `cw` | Own Clarke-Wright savings heuristic, extended to time windows and vehicle types, randomised multi-start |
 | `cw_ls` | The same, followed by a variable-neighbourhood local search |
 | `ortools` | Google OR-Tools Routing (PATH_CHEAPEST_ARC + Guided Local Search) |
-| `hexaly` | Hexaly Optimizer (list-variable model) — pending an evaluation license |
+| `hexaly` | Hexaly Optimizer 15 (list-variable model), single thread |
 
 The full design and the phased plan are in [PLAN.md](PLAN.md).
 
@@ -21,8 +21,8 @@ The full design and the phased plan are in [PLAN.md](PLAN.md).
 | 2 | Maps (PNG + HTML) and x-t Gantt plots; `bench plot` | **done** |
 | 3 | Clarke-Wright (`cw`) and Clarke-Wright + local search (`cw_ls`); `bench solve` | **done** |
 | 4 | OR-Tools adapter (`ortools`) | **done** |
-| 5 | Hexaly adapter | waiting for the evaluation license |
-| 6 | Resumable full run (`bench run`), HTML report with conclusions (`bench report`); results for `cw`, `cw_ls`, `ortools` on the 108 instances in `results/final/` | **done** (Hexaly column to be added with the same commands) |
+| 5 | Hexaly adapter (`hexaly`) | **done** — Hexaly 15 Python SDK, soft/hard time-window modes; its tests run when a license is present |
+| 6 | Resumable full run (`bench run`), HTML report with conclusions (`bench report`); the four-solver run on the 108 instances in `results/final/` | **done** |
 
 ## Requirements
 
@@ -54,10 +54,22 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 93 tests
+pytest -q                   # 97 tests (3 of them skipped without a Hexaly license)
 ```
 
-Hexaly is optional: `pip install hexaly` plus a license key, see Phase 5.
+The `hexaly` package installs with the requirements, but solving needs a license
+(evaluation or commercial):
+
+```bash
+export HX_LICENSE_PATH=/absolute/path/to/license.dat
+pytest -q tests/test_hexaly.py -ra
+```
+
+The three license-dependent tests must show as *passed*, not *skipped* (a skip means the
+license was not found). `HX_LICENSE_PATH` must be set in every shell that runs `bench`
+(or put the file where Hexaly looks by default, `/opt/hexaly_15_0/license.dat`, or set
+`hexaly.license_path` in `configs/run.default.yaml`). `HX_LICENSE_CONTENT` with the key text
+itself also works. See the Hexaly section below for the model.
 
 ## Usage
 
@@ -101,7 +113,7 @@ seconds and reports that; `cw_ls`, OR-Tools and Hexaly use it fully.
 ```bash
 bench run --out results/full --solvers cw,cw_ls,ortools --workers 2 --no-plots
 bench run --out results/full --solvers cw,cw_ls,ortools --sizes 100,200      # a subset
-bench run --out results/final --solvers hexaly                               # later: adds the Hexaly column to the published run
+bench run --out results/final --solvers hexaly --workers 2 --no-plots       # adds a solver to an existing run (resume)
 bench report results/full                                                    # -> results/full/report.html + tables/*.csv
 bench report results/final --gallery 3 --basemap esri-gray                   # rebuild the published report
 ```
@@ -125,50 +137,96 @@ gallery of maps and Gantt charts, data-driven conclusions and a "which tool when
 CSV twins of every table under `tables/`. Instances that lack a result from one of the solvers
 present are left out of the page (and listed), so a half-finished run never biases the averages.
 
-## Results so far (cw, cw_ls, ortools — Hexaly pending)
+## Results (cw, cw_ls, ortools, hexaly)
 
-Full run of 2026-09-02: 108 instances × 3 solvers = 324 results, all valid, one common
-wall-clock cap per size (60 / 60 / 120 / 180 s), seed 42, single thread, 2 parallel workers
-on a 2-core Linux box (Python 3.11.15, OR-Tools 9.15). The report is
-[`results/final/report.html`](results/final/report.html) (self-contained, open it in a
-browser) and the tables are in `results/final/tables/`; `results/final/` is the complete run
-directory — every `solution.json` (re-validate any of them with `bench validate`), `log.jsonl`
-and `run_meta.json` — minus the plots, so `bench report results/final` rebuilds the page and
-`bench run --out results/final --solvers hexaly` will extend it. Gaps are coverage-first: the best
-known coverage per instance is the maximum served among valid results (seed included); a
-result below it counts a coverage deficit and no cost gap; among results at best coverage,
+The published run: 108 instances × 4 solvers = 432 results, all valid, one common wall-clock
+cap per size (60 / 60 / 120 / 180 s), seed 42, single thread each, 2 parallel workers on the
+same 2-core Linux box (Python 3.11.15, OR-Tools 9.15, Hexaly 15.0). The three open-source
+columns were run on 2026-09-02 and the Hexaly column added on 2026-09-16 with `bench run
+--solvers hexaly` on the same run directory (the runner resumes: nothing was recomputed, same
+machine, same limits). The report is [`results/final/report.html`](results/final/report.html)
+(self-contained, open it in a browser) and the tables are in `results/final/tables/`;
+`results/final/` is the complete run directory — every `solution.json` (re-validate any of
+them with `bench validate`), `log.jsonl` and `run_meta.json` — minus the plots, so
+`bench report results/final` rebuilds the page. Gaps are coverage-first: the best known
+coverage per instance is the maximum served among valid results (seed included); a result
+below it counts a coverage deficit and no cost gap; among results at best coverage,
 gap = cost / best cost − 1.
 
 | Solver | Instances at best coverage | Customers missed (sum) | Best cost (wins) | Mean cost gap | Median | Worst | Mean time to best |
 |---|---|---|---|---|---|---|---|
-| OR-Tools | 108 / 108 | 0 | 88 | 0.4 % | 0.0 % | 6.4 % | 79 s |
-| CW + local search | 89 / 108 | 24 | 20 | 2.5 % | 2.1 % | 12.8 % | 48 s |
-| Clarke-Wright | 80 / 108 | 71 | 0 | 18.8 % | 16.8 % | 52.8 % | 0.3 s (wall 0.9 s) |
+| OR-Tools | 108 / 108 | 0 | 74 | 0.8 % | 0.0 % | 6.8 % | 79 s |
+| Hexaly (1 thread) | 78 / 108 | 51 | 20 | 3.2 % | 1.8 % | 18.1 % | 81 s |
+| CW + local search | 89 / 108 | 24 | 14 | 2.9 % | 2.3 % | 12.8 % | 48 s |
+| Clarke-Wright | 80 / 108 | 71 | 0 | 19.3 % | 17.8 % | 52.8 % | 0.3 s (wall 0.9 s) |
 
 What the numbers say, in short:
 
-* **OR-Tools is the reference.** It never misses the best known coverage, wins the cost on
-  88 of 108 instances, and where it does not win it is within 6.4 %. Head to head with the
-  own heuristic: it serves more customers on 19 instances (all of them at 105 % stress),
-  fewer on none; at equal coverage it is cheaper on 69 and dearer on 20, by +2.0 % on average.
-* **The own heuristic is close but not equal.** CW + local search is within 2.5 % on average
-  and full coverage everywhere at 60 % and 85 % stress; the 24 customers it misses are all on
-  over-subscribed (105 %) instances, where OR-Tools consolidates one or two more customers
-  into the same fleet. Its gap grows with tighter windows (1.6 % on L → 3.6 % on T profiles)
-  and *shrinks* with size (2.8 % at n = 100 → 1.7 % at n = 600) — the latter because OR-Tools
-  is still improving when the 180 s cap stops it (time to best 150 s of 180 on average at
-  n = 600), so the gap at the largest size is a statement about the limit, not the methods.
+* **OR-Tools is the reference.** It never misses the best known coverage, has the best cost on
+  74 of 108 instances, and where it does not win it is within 6.8 %. Head to head with Hexaly it
+  serves more customers on 30 instances and fewer on none; at equal coverage it is cheaper on 52
+  and dearer on 26, Hexaly costing +2.2 % on average (median +1.3 %, range −6.3 % to +18.1 %).
+* **Hexaly, single-threaded and with its template model, loses on coverage, not on cost.** 50 of
+  its 51 missed customers are on the over-subscribed (105 %) instances, where it reaches the best
+  known coverage on only 7 of 36 — and on those 7 its cost gap is 0.2 %. Its gap shrinks with
+  size (5.0 % at n = 100 → 1.4 % at n = 600) and its outright wins grow with it (5, 2, 6, 7 by
+  size); at 85 % stress it has the best cost on 13 of 36 instances. Against the own heuristic
+  it is a draw on cost at equal coverage (cheaper on 48, dearer on 36, −0.1 % on average) but
+  reaches the best known coverage less often (78 vs 89). The shortfall is not an artefact of
+  the soft-lateness formulation: the hard-constraint variant served fewer customers on the two
+  over-subscribed instances it was tried on (table below).
+* **The own heuristic is close but not equal.** CW + local search is within 2.9 % on average and
+  at full coverage everywhere at 60 % and 85 % stress; the 24 customers it misses are all on
+  105 % instances, where OR-Tools consolidates one or two more customers into the same fleet.
+  Its gap grows with tighter windows (2.3 % on L → 3.7 % on T) and shrinks with size (3.0 % at
+  n = 100 → 2.4 % at n = 600) — the latter partly because OR-Tools is still improving when the
+  180 s cap stops it (time to best 150 s of 180 on average at n = 600; Hexaly 141 s), so the
+  gaps at the largest size say as much about the limit as about the methods.
 * **Local search is what makes the heuristic usable.** Plain Clarke-Wright is 15.7 % more
   expensive than CW + LS at equal coverage and misses 71 customers, but answers in about a
   second; a first plan or a warm start, not an optimiser.
-* **Everything is reproducible and re-judged.** Every result was re-evaluated from its
-  visiting orders by the independent validator, and on all 324 results the (served, cost)
-  the solver itself reported for its final solution — for OR-Tools, its objective net of the
-  drop penalties — equals what the validator recomputed.
+* **Everything is reproducible and re-judged.** Every result was re-evaluated from its visiting
+  orders by the independent validator, and on all 432 results the (served, cost) the solver
+  itself reported for its final solution — OR-Tools' objective net of the drop penalties,
+  Hexaly's two objective values — equals what the validator recomputed.
 
-When the Hexaly license arrives, `bench run --out results/final --solvers hexaly` adds its 108
-jobs to the published run directory (nothing else is recomputed) and `bench report results/final`
-regenerates the report with a fourth column and the Hexaly paragraph of the conclusions.
+**What this says about the license question.** At one thread and these limits, on a textbook
+CVRPTW with a heterogeneous fleet, the free OR-Tools Routing library beats Hexaly on the
+benchmark's own objective, and the in-house heuristic is roughly Hexaly's equal. That is the
+setting this benchmark was designed to measure, and it is not Hexaly's best setting: its model
+is plain arithmetic on list variables (any extra business rule is one more expression, not a
+new Routing dimension or callback), and it is multi-threaded by design. The follow-ups worth
+running before a final decision, all a config change or a few lines away: `hexaly.nb_threads`
+at the machine's core count and a longer tier for n = 600 (clearly labelled as a secondary,
+non-equal-footing experiment), and a single penalised objective (served × big-M − cost, the
+shape OR-Tools optimises) in place of the lexicographic pair.
+
+**Modelling choice for Hexaly.** Its two ways of handling the time windows were compared once
+on three instances at the common limits (2026-09-16, same machine, one thread;
+`configs/run.hexaly_hard.yaml` for the hard side) before the full run — the same kind of
+documented choice that was made for OR-Tools (guided local search):
+
+| instance (limit) | soft: served / cost | hard: served / cost |
+|---|---|---|
+| C-200-M-85 (60 s) | 200 / 634 804 | 200 / 638 646 |
+| RC-200-T-105 (60 s) | **198** / 690 863 | 196 / 692 187 |
+| R-400-T-105 (120 s) | **395** / 1 328 209 | 394 / 1 309 748 |
+
+`soft` (Hexaly's own template idiom) wins on all three under the coverage-first objective and
+is the default (`hexaly.time_windows` in `configs/run.default.yaml`).
+
+**Re-running everything on another machine** (for instance a faster desktop, to see all four
+methods more converged at the same limits):
+
+```bash
+export HX_LICENSE_PATH=/absolute/path/to/license.dat
+bench run --out results/run_$(hostname) --solvers cw,cw_ls,ortools,hexaly --workers 2 --no-plots
+bench report results/run_$(hostname) --gallery 3 --basemap esri-gray
+```
+
+The run is resumable (Ctrl-C and rerun the same command to continue). Keep `--workers` at or
+below the number of *performance* cores so every job gets a full core; on macOS prefix the
+run with `caffeinate -i`.
 
 ## OR-Tools: `ortools`
 
@@ -185,6 +243,35 @@ assumed — the tests assert that OR-Tools' objective equals the validator's cos
 dropped on every run. Search: `PATH_CHEAPEST_ARC` first solution + `GUIDED_LOCAL_SEARCH`,
 single-threaded, with the common time limit; an at-solution callback records every improvement
 for the time-to-best and the convergence trace.
+
+## Hexaly: `hexaly`
+
+`solvers/hexaly_solver.py` follows the list-variable idiom of Hexaly's own CVRPTW example,
+on the shared integer matrices. One list variable per vehicle (the fleet expanded to
+individual vehicles) and a `disjoint` constraint over the lists, so a customer is visited at
+most once and may stay unserved; per vehicle, the load (a `sum` over the list) must fit its
+capacity, the service starts are a recursive `array` — `start_0 = max(e, opening + travel)`,
+`start_i = max(e_i, start_{i−1} + service + travel)`, i.e. free departure and free waiting —
+and the route cost is the fixed cost if the list is not empty plus the arc costs read from the
+matrix of the vehicle's type. The windows `start_i ≤ l_i` and the return before closing are
+enforced the way Hexaly's own [CVRPTW template](https://www.hexaly.com/templates/vehicle-routing-problem-with-time-windows-cvrptw)
+does it: total lateness is a first-priority objective driven to zero (`time_windows: soft`,
+the default — it keeps the search space connected), with `time_windows: hard` posting them as
+constraints instead; the validator accepts zero lateness only, and a run whose final lateness
+is not zero is reported as an error, never as a result. Objectives in lexicographic order:
+[minimise lateness,] maximise the customers served, minimise the total cost. What differs
+from the template is what the benchmark demands: `disjoint` instead of `partition` (customers
+are optional, so *served* is an objective), per-vehicle capacities and per-type cost matrices
+(heterogeneous fleet), fixed cost per vehicle used instead of a vehicle count, and integer
+CLP instead of rounded distances. `nb_threads = 1`, the config seed and the common time limit (model build time
+counts against it, as for OR-Tools); a `TIME_TICKED` callback records every improvement of the
+incumbent for the time-to-best and the convergence trace, and the final (served, cost) Hexaly
+reports is asserted equal to the validator's in the tests. Size, as a proxy for modelling
+effort (code lines without comments): the Hexaly model is 69 lines and its adapter 145; the
+OR-Tools model 42 and its adapter 109; the own heuristic about 890. On a textbook CVRPTW the
+Routing library is the more compact of the two solvers — Hexaly's argument is that any extra
+business rule is one more expression on the lists rather than a new dimension or callback,
+plus multi-threading out of the box (not credited in this single-thread comparison).
 
 ## The own heuristic: `cw` and `cw_ls`
 
@@ -272,7 +359,7 @@ src/cvrptw_bench/
   core/       instance.py  matrices.py  solution.py  validator.py  insertion.py
   generator/  config.py  geo.py  sampling.py  demand.py  seed_solution.py  windows.py  generate.py
   data/       santiago_urban.geojson
-  solvers/    base.py  routes.py  clarke_wright.py  local_search.py  ortools_solver.py  (hexaly: Phase 5)
+  solvers/    base.py  routes.py  clarke_wright.py  local_search.py  ortools_solver.py  hexaly_solver.py
   run.py      solve_one (time-limit tiers, solver params, artefacts), run_benchmark (resumable, parallel)
   viz/        style.py  map_static.py  map_html.py  gantt.py
   report/     aggregate.py (tables, gaps, profiles)  charts.py (Plotly)  build_html.py (report + conclusions)
