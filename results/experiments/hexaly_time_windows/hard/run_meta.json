@@ -1,0 +1,65 @@
+{
+ "started": "2026-09-16T00:13:46Z",
+ "resumed": [],
+ "package_version": "0.1.0",
+ "solvers": [
+  "hexaly"
+ ],
+ "instances": [
+  "C-200-M-85",
+  "RC-200-T-105",
+  "R-400-T-105"
+ ],
+ "config": {
+  "seed": 42,
+  "solvers": [
+   "hexaly"
+  ],
+  "time_limits_s": {
+   "200": 60,
+   "400": 120,
+   "600": 180,
+   "default": 300
+  },
+  "threads": 1,
+  "cw": {
+   "multistart_runs": 20,
+   "lambda_range": [
+    0.6,
+    1.4
+   ],
+   "savings_noise": 0.1,
+   "neighbours": 30
+  },
+  "cw_ls": {
+   "neighbours": 30
+  },
+  "ortools": {
+   "first_solution": "PATH_CHEAPEST_ARC",
+   "metaheuristic": "GUIDED_LOCAL_SEARCH",
+   "log_search": false
+  },
+  "hexaly": {
+   "nb_threads": 1,
+   "license_path": null,
+   "time_windows": "hard"
+  },
+  "outputs": {
+   "plots": false,
+   "basemap": "esri-gray"
+  }
+ },
+ "workers": 1,
+ "host": {
+  "platform": "Linux-6.18.44-fc-v33-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "processor": "x86_64",
+  "cpu_count": 2,
+  "python": "3.11.15",
+  "packages": {
+   "numpy": "2.4.4",
+   "ortools": "9.15.6755",
+   "hexaly": "15.0.20260914"
+  }
+ }
+}

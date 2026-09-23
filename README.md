@@ -213,7 +213,8 @@ documented choice that was made for OR-Tools (guided local search):
 | R-400-T-105 (120 s) | **395** / 1 328 209 | 394 / 1 309 748 |
 
 `soft` (Hexaly's own template idiom) wins on all three under the coverage-first objective and
-is the default (`hexaly.time_windows` in `configs/run.default.yaml`).
+is the default (`hexaly.time_windows` in `configs/run.default.yaml`). The six solutions and
+logs of this experiment are in `results/experiments/hexaly_time_windows/`.
 
 **Re-running everything on another machine** (for instance a faster desktop, to see all four
 methods more converged at the same limits):
