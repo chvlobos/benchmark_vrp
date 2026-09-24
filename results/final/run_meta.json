@@ -3,7 +3,8 @@
  "resumed": [
   "2026-09-02T21:11:40Z",
   "2026-09-02T21:25:31Z",
-  "2026-09-16T01:05:59Z"
+  "2026-09-16T01:05:59Z",
+  "2026-09-23T17:17:16Z"
  ],
  "package_version": "0.1.0",
  "solvers": [
@@ -157,7 +158,9 @@
   "hexaly": {
    "nb_threads": 1,
    "license_path": null,
-   "time_windows": "soft"
+   "time_windows": "soft",
+   "objective": "lexicographic",
+   "unserved": "dummy_list"
   },
   "outputs": {
    "plots": true,
@@ -176,5 +179,12 @@
    "ortools": "9.15.6755",
    "hexaly": "15.0.20260914"
   }
- }
+ },
+ "cpu_probe": {
+  "single_s": 0.261,
+  "parallel_s": 0.242,
+  "slowdown": 0.93,
+  "effective_cores": 2.16
+ },
+ "note": "Hexaly column: replaced on 2026-09-23 by the run of results/experiments/hexaly_dummy (dummy-list formulation, same machine, limits, seed, one thread); the earlier disjoint-list column is kept in results/experiments/hexaly_disjoint"
 }

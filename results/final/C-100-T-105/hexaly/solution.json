@@ -2,21 +2,23 @@
  "schema_version": 1,
  "instance": "C-100-T-105",
  "solver": "hexaly",
- "solver_version": "0.1.0",
+ "solver_version": "0.2.0",
  "config": {
   "time_limit_s": 60.0,
   "seed": 42,
   "threads": 1,
   "nb_threads": 1,
   "license_path": null,
-  "time_windows": "soft"
+  "time_windows": "soft",
+  "objective": "lexicographic",
+  "unserved": "dummy_list"
  },
  "seed": 42,
  "status": "feasible",
  "message": null,
  "compute": {
   "wall_time_s": 59.994,
-  "time_to_best_s": 3.992,
+  "time_to_best_s": 2.993,
   "threads": 1,
   "host": "Linux x86_64 (x86_64)",
   "python": "3.11.15",
@@ -28,71 +30,87 @@
  },
  "plan_routes": {
   "0": [
-   24,
-   84,
-   58,
-   9,
+   52,
+   36,
    37,
-   43,
-   65,
-   82,
-   77,
-   63,
-   66,
-   40,
-   67,
-   54,
-   28,
-   18,
-   15,
+   27,
+   48,
+   59,
+   95,
+   87,
    73,
    90,
    83
   ],
   "1": [
-   52,
-   36,
-   10,
-   99,
-   4,
-   50,
-   72,
-   33,
-   60,
-   16,
-   57,
-   14,
-   64,
-   20,
-   49,
-   47,
-   41,
-   45,
-   23,
-   89
-  ],
-  "3": [
-   74,
-   44,
-   56,
-   25,
+   86,
    76,
    35,
    71,
    30,
-   70,
-   91,
-   32,
-   68,
-   97,
    1,
-   62,
+   97,
    26,
    7
   ],
-  "4": [
+  "2": [
+   24,
+   58,
+   84,
+   99,
+   50,
+   4,
+   41,
+   57,
+   16,
+   60,
+   33,
+   72,
+   44,
+   74,
    81,
-   86,
+   68,
+   70,
+   62,
+   91,
+   32
+  ],
+  "3": [
+   96,
+   21,
+   78,
+   17,
+   65,
+   82,
+   77,
+   40,
+   63,
+   66,
+   28,
+   67,
+   54
+  ],
+  "4": [
+   80,
+   19,
+   98,
+   38,
+   43,
+   100,
+   93,
+   42,
+   3,
+   22,
+   11,
+   18,
+   15,
+   5,
+   79,
+   61
+  ],
+  "5": [
+   56,
+   25,
    34,
    75,
    69,
@@ -101,179 +119,102 @@
    85,
    39
   ],
-  "5": [
-   96,
-   80,
-   21,
-   78,
-   17,
-   19,
-   98,
-   38,
-   100,
-   93,
-   42,
-   48,
-   59,
-   27,
-   95,
-   11,
-   22,
-   3,
-   55,
-   5,
-   79,
-   61
-  ],
   "6": [
    8,
+   9,
    2,
+   10,
    46,
    29,
    92,
-   87,
+   55,
+   49,
+   20,
+   64,
+   14,
+   47,
+   45,
    53,
    31,
    94,
-   6
+   23,
+   6,
+   89
   ]
  },
  "routes": [
   {
    "vehicle_id": 0,
    "vehicle_type": "small",
-   "depart": 38039,
+   "depart": 41455,
    "return": 53219,
-   "load": 762,
+   "load": 768,
    "capacity": 800,
-   "distance_m": 66112,
+   "distance_m": 53486,
    "fixed_cost": 20000,
-   "variable_cost": 23140,
-   "cost": 43140,
+   "variable_cost": 18721,
+   "cost": 38721,
    "stops": [
     {
-     "customer": 24,
-     "arrival": 40732,
+     "customer": 52,
+     "arrival": 44100,
      "wait": 0,
-     "service_start": 40732,
-     "departure": 41068
+     "service_start": 44100,
+     "departure": 44409
     },
     {
-     "customer": 84,
-     "arrival": 41230,
+     "customer": 36,
+     "arrival": 44576,
      "wait": 0,
-     "service_start": 41230,
-     "departure": 41485
-    },
-    {
-     "customer": 58,
-     "arrival": 41520,
-     "wait": 0,
-     "service_start": 41520,
-     "departure": 41841
-    },
-    {
-     "customer": 9,
-     "arrival": 41889,
-     "wait": 0,
-     "service_start": 41889,
-     "departure": 42243
+     "service_start": 44576,
+     "departure": 44825
     },
     {
      "customer": 37,
-     "arrival": 42474,
+     "arrival": 45039,
      "wait": 0,
-     "service_start": 42474,
-     "departure": 42768
+     "service_start": 45039,
+     "departure": 45333
     },
     {
-     "customer": 43,
-     "arrival": 42849,
+     "customer": 27,
+     "arrival": 45445,
      "wait": 0,
-     "service_start": 42849,
-     "departure": 43062
+     "service_start": 45445,
+     "departure": 45676
     },
     {
-     "customer": 65,
-     "arrival": 43147,
+     "customer": 48,
+     "arrival": 45738,
      "wait": 0,
-     "service_start": 43147,
-     "departure": 43468
+     "service_start": 45738,
+     "departure": 46020
     },
     {
-     "customer": 82,
-     "arrival": 43504,
+     "customer": 59,
+     "arrival": 46038,
      "wait": 0,
-     "service_start": 43504,
-     "departure": 43816
+     "service_start": 46038,
+     "departure": 46326
     },
     {
-     "customer": 77,
-     "arrival": 44136,
+     "customer": 95,
+     "arrival": 46359,
      "wait": 0,
-     "service_start": 44136,
-     "departure": 44430
+     "service_start": 46359,
+     "departure": 46605
     },
     {
-     "customer": 63,
-     "arrival": 44690,
-     "wait": 0,
-     "service_start": 44690,
-     "departure": 45044
-    },
-    {
-     "customer": 66,
-     "arrival": 45057,
-     "wait": 0,
-     "service_start": 45057,
-     "departure": 45369
-    },
-    {
-     "customer": 40,
-     "arrival": 45409,
-     "wait": 0,
-     "service_start": 45409,
-     "departure": 45706
-    },
-    {
-     "customer": 67,
-     "arrival": 45934,
-     "wait": 0,
-     "service_start": 45934,
-     "departure": 46276
-    },
-    {
-     "customer": 54,
-     "arrival": 46427,
-     "wait": 13,
-     "service_start": 46440,
-     "departure": 46662
-    },
-    {
-     "customer": 28,
-     "arrival": 46915,
-     "wait": 0,
-     "service_start": 46915,
-     "departure": 47176
-    },
-    {
-     "customer": 18,
-     "arrival": 47359,
-     "wait": 0,
-     "service_start": 47359,
-     "departure": 47701
-    },
-    {
-     "customer": 15,
-     "arrival": 47744,
-     "wait": 916,
-     "service_start": 48660,
-     "departure": 48927
+     "customer": 87,
+     "arrival": 46698,
+     "wait": 462,
+     "service_start": 47160,
+     "departure": 48756
     },
     {
      "customer": 73,
-     "arrival": 49007,
-     "wait": 433,
+     "arrival": 48840,
+     "wait": 600,
      "service_start": 49440,
      "departure": 49650
     },
@@ -296,315 +237,490 @@
   {
    "vehicle_id": 1,
    "vehicle_type": "small",
-   "depart": 41455,
-   "return": 60371,
-   "load": 788,
+   "depart": 49898,
+   "return": 61016,
+   "load": 351,
    "capacity": 800,
-   "distance_m": 60915,
+   "distance_m": 63120,
    "fixed_cost": 20000,
-   "variable_cost": 21318,
-   "cost": 41318,
+   "variable_cost": 22092,
+   "cost": 42092,
    "stops": [
     {
-     "customer": 52,
-     "arrival": 44100,
+     "customer": 86,
+     "arrival": 53342,
      "wait": 0,
-     "service_start": 44100,
-     "departure": 44409
+     "service_start": 53342,
+     "departure": 53624
     },
     {
-     "customer": 36,
-     "arrival": 44576,
+     "customer": 76,
+     "arrival": 53730,
      "wait": 0,
-     "service_start": 44576,
-     "departure": 44825
+     "service_start": 53730,
+     "departure": 54000
     },
     {
-     "customer": 10,
-     "arrival": 44993,
+     "customer": 35,
+     "arrival": 54213,
      "wait": 0,
-     "service_start": 44993,
-     "departure": 45278
+     "service_start": 54213,
+     "departure": 54498
+    },
+    {
+     "customer": 71,
+     "arrival": 54600,
+     "wait": 0,
+     "service_start": 54600,
+     "departure": 54831
+    },
+    {
+     "customer": 30,
+     "arrival": 54971,
+     "wait": 0,
+     "service_start": 54971,
+     "departure": 55256
+    },
+    {
+     "customer": 1,
+     "arrival": 55309,
+     "wait": 311,
+     "service_start": 55620,
+     "departure": 55941
+    },
+    {
+     "customer": 97,
+     "arrival": 56123,
+     "wait": 0,
+     "service_start": 56123,
+     "departure": 56465
+    },
+    {
+     "customer": 26,
+     "arrival": 56560,
+     "wait": 560,
+     "service_start": 57120,
+     "departure": 57450
+    },
+    {
+     "customer": 7,
+     "arrival": 57607,
+     "wait": 0,
+     "service_start": 57607,
+     "departure": 57934
+    }
+   ]
+  },
+  {
+   "vehicle_id": 2,
+   "vehicle_type": "small",
+   "depart": 37982,
+   "return": 58751,
+   "load": 751,
+   "capacity": 800,
+   "distance_m": 84872,
+   "fixed_cost": 20000,
+   "variable_cost": 29706,
+   "cost": 49706,
+   "stops": [
+    {
+     "customer": 24,
+     "arrival": 40675,
+     "wait": 0,
+     "service_start": 40675,
+     "departure": 41011
+    },
+    {
+     "customer": 58,
+     "arrival": 41164,
+     "wait": 0,
+     "service_start": 41164,
+     "departure": 41485
+    },
+    {
+     "customer": 84,
+     "arrival": 41520,
+     "wait": 0,
+     "service_start": 41520,
+     "departure": 41775
     },
     {
      "customer": 99,
-     "arrival": 45359,
-     "wait": 0,
-     "service_start": 45359,
-     "departure": 45653
-    },
-    {
-     "customer": 4,
-     "arrival": 45721,
-     "wait": 0,
-     "service_start": 45721,
-     "departure": 46036
+     "arrival": 41872,
+     "wait": 608,
+     "service_start": 42480,
+     "departure": 42774
     },
     {
      "customer": 50,
-     "arrival": 46073,
+     "arrival": 42849,
      "wait": 0,
-     "service_start": 46073,
-     "departure": 46358
+     "service_start": 42849,
+     "departure": 43134
+    },
+    {
+     "customer": 4,
+     "arrival": 43171,
+     "wait": 629,
+     "service_start": 43800,
+     "departure": 44115
+    },
+    {
+     "customer": 41,
+     "arrival": 44253,
+     "wait": 0,
+     "service_start": 44253,
+     "departure": 44613
+    },
+    {
+     "customer": 57,
+     "arrival": 44734,
+     "wait": 0,
+     "service_start": 44734,
+     "departure": 45061
+    },
+    {
+     "customer": 16,
+     "arrival": 45144,
+     "wait": 0,
+     "service_start": 45144,
+     "departure": 45492
+    },
+    {
+     "customer": 60,
+     "arrival": 45522,
+     "wait": 1398,
+     "service_start": 46920,
+     "departure": 47184
+    },
+    {
+     "customer": 33,
+     "arrival": 47424,
+     "wait": 0,
+     "service_start": 47424,
+     "departure": 47697
     },
     {
      "customer": 72,
-     "arrival": 46527,
-     "wait": 1413,
+     "arrival": 47802,
+     "wait": 138,
      "service_start": 47940,
      "departure": 48258
     },
     {
-     "customer": 33,
-     "arrival": 48363,
+     "customer": 44,
+     "arrival": 50558,
+     "wait": 202,
+     "service_start": 50760,
+     "departure": 50997
+    },
+    {
+     "customer": 74,
+     "arrival": 51064,
      "wait": 0,
-     "service_start": 48363,
-     "departure": 48636
+     "service_start": 51064,
+     "departure": 51412
     },
     {
-     "customer": 60,
-     "arrival": 48876,
+     "customer": 81,
+     "arrival": 51638,
+     "wait": 1582,
+     "service_start": 53220,
+     "departure": 53535
+    },
+    {
+     "customer": 68,
+     "arrival": 53764,
+     "wait": 176,
+     "service_start": 53940,
+     "departure": 54168
+    },
+    {
+     "customer": 70,
+     "arrival": 54347,
      "wait": 0,
-     "service_start": 48876,
-     "departure": 49140
+     "service_start": 54347,
+     "departure": 54587
     },
     {
-     "customer": 16,
-     "arrival": 49170,
+     "customer": 62,
+     "arrival": 54656,
      "wait": 0,
-     "service_start": 49170,
-     "departure": 49518
+     "service_start": 54656,
+     "departure": 55013
     },
     {
-     "customer": 57,
-     "arrival": 49601,
+     "customer": 91,
+     "arrival": 55101,
      "wait": 0,
-     "service_start": 49601,
-     "departure": 49928
+     "service_start": 55101,
+     "departure": 55311
     },
     {
-     "customer": 14,
-     "arrival": 50025,
-     "wait": 1935,
-     "service_start": 51960,
-     "departure": 52287
-    },
-    {
-     "customer": 64,
-     "arrival": 52317,
-     "wait": 783,
-     "service_start": 53100,
-     "departure": 53337
-    },
-    {
-     "customer": 20,
-     "arrival": 53377,
+     "customer": 32,
+     "arrival": 55385,
      "wait": 0,
-     "service_start": 53377,
-     "departure": 53632
-    },
-    {
-     "customer": 49,
-     "arrival": 53661,
-     "wait": 0,
-     "service_start": 53661,
-     "departure": 53949
-    },
-    {
-     "customer": 47,
-     "arrival": 54021,
-     "wait": 0,
-     "service_start": 54021,
-     "departure": 54345
-    },
-    {
-     "customer": 41,
-     "arrival": 54416,
-     "wait": 0,
-     "service_start": 54416,
-     "departure": 54776
-    },
-    {
-     "customer": 45,
-     "arrival": 54851,
-     "wait": 0,
-     "service_start": 54851,
-     "departure": 55121
-    },
-    {
-     "customer": 23,
-     "arrival": 55246,
-     "wait": 1514,
-     "service_start": 56760,
-     "departure": 57054
-    },
-    {
-     "customer": 89,
-     "arrival": 57205,
-     "wait": 0,
-     "service_start": 57205,
-     "departure": 57547
+     "service_start": 55385,
+     "departure": 55607
     }
    ]
   },
   {
    "vehicle_id": 3,
    "vehicle_type": "small",
-   "depart": 47618,
-   "return": 61196,
-   "load": 619,
+   "depart": 38549,
+   "return": 49495,
+   "load": 524,
    "capacity": 800,
-   "distance_m": 72194,
+   "distance_m": 57741,
    "fixed_cost": 20000,
-   "variable_cost": 25269,
-   "cost": 45269,
+   "variable_cost": 20210,
+   "cost": 40210,
    "stops": [
     {
-     "customer": 74,
-     "arrival": 50815,
+     "customer": 96,
+     "arrival": 41161,
      "wait": 0,
-     "service_start": 50815,
-     "departure": 51163
+     "service_start": 41161,
+     "departure": 41500
     },
     {
-     "customer": 44,
-     "arrival": 51230,
+     "customer": 21,
+     "arrival": 41640,
      "wait": 0,
-     "service_start": 51230,
-     "departure": 51467
+     "service_start": 41640,
+     "departure": 41880
     },
     {
-     "customer": 56,
-     "arrival": 51675,
+     "customer": 78,
+     "arrival": 41993,
      "wait": 0,
-     "service_start": 51675,
-     "departure": 52026
+     "service_start": 41993,
+     "departure": 42254
     },
     {
-     "customer": 25,
-     "arrival": 52227,
+     "customer": 17,
+     "arrival": 42331,
      "wait": 0,
-     "service_start": 52227,
-     "departure": 52560
+     "service_start": 42331,
+     "departure": 42688
     },
     {
-     "customer": 76,
-     "arrival": 52790,
+     "customer": 65,
+     "arrival": 42814,
      "wait": 0,
-     "service_start": 52790,
-     "departure": 53060
+     "service_start": 42814,
+     "departure": 43135
     },
     {
-     "customer": 35,
-     "arrival": 53273,
+     "customer": 82,
+     "arrival": 43171,
      "wait": 0,
-     "service_start": 53273,
-     "departure": 53558
+     "service_start": 43171,
+     "departure": 43483
     },
     {
-     "customer": 71,
-     "arrival": 53660,
+     "customer": 77,
+     "arrival": 43803,
      "wait": 0,
-     "service_start": 53660,
-     "departure": 53891
+     "service_start": 43803,
+     "departure": 44097
     },
     {
-     "customer": 30,
-     "arrival": 54031,
-     "wait": 0,
-     "service_start": 54031,
-     "departure": 54316
+     "customer": 40,
+     "arrival": 44354,
+     "wait": 106,
+     "service_start": 44460,
+     "departure": 44757
     },
     {
-     "customer": 70,
-     "arrival": 54499,
+     "customer": 63,
+     "arrival": 44791,
      "wait": 0,
-     "service_start": 54499,
-     "departure": 54739
+     "service_start": 44791,
+     "departure": 45145
     },
     {
-     "customer": 91,
-     "arrival": 54890,
+     "customer": 66,
+     "arrival": 45158,
      "wait": 0,
-     "service_start": 54890,
-     "departure": 55100
+     "service_start": 45158,
+     "departure": 45470
     },
     {
-     "customer": 32,
-     "arrival": 55174,
+     "customer": 28,
+     "arrival": 45596,
      "wait": 0,
-     "service_start": 55174,
-     "departure": 55396
+     "service_start": 45596,
+     "departure": 45857
     },
     {
-     "customer": 68,
-     "arrival": 55563,
+     "customer": 67,
+     "arrival": 46058,
      "wait": 0,
-     "service_start": 55563,
-     "departure": 55791
+     "service_start": 46058,
+     "departure": 46400
     },
     {
-     "customer": 97,
-     "arrival": 55860,
+     "customer": 54,
+     "arrival": 46551,
      "wait": 0,
-     "service_start": 55860,
-     "departure": 56202
-    },
-    {
-     "customer": 1,
-     "arrival": 56384,
-     "wait": 0,
-     "service_start": 56384,
-     "departure": 56705
-    },
-    {
-     "customer": 62,
-     "arrival": 56895,
-     "wait": 0,
-     "service_start": 56895,
-     "departure": 57252
-    },
-    {
-     "customer": 26,
-     "arrival": 57300,
-     "wait": 0,
-     "service_start": 57300,
-     "departure": 57630
-    },
-    {
-     "customer": 7,
-     "arrival": 57787,
-     "wait": 0,
-     "service_start": 57787,
-     "departure": 58114
+     "service_start": 46551,
+     "departure": 46773
     }
    ]
   },
   {
    "vehicle_id": 4,
    "vehicle_type": "medium",
-   "depart": 50213,
-   "return": 63864,
-   "load": 1408,
+   "depart": 38758,
+   "return": 55483,
+   "load": 1360,
    "capacity": 1600,
-   "distance_m": 65051,
+   "distance_m": 57163,
    "fixed_cost": 30000,
-   "variable_cost": 32528,
-   "cost": 62528,
+   "variable_cost": 28583,
+   "cost": 58583,
    "stops": [
     {
-     "customer": 81,
-     "arrival": 53441,
+     "customer": 80,
+     "arrival": 41400,
      "wait": 0,
-     "service_start": 53441,
-     "departure": 53756
+     "service_start": 41400,
+     "departure": 41676
     },
     {
-     "customer": 86,
-     "arrival": 53977,
+     "customer": 19,
+     "arrival": 42005,
      "wait": 0,
-     "service_start": 53977,
-     "departure": 54259
+     "service_start": 42005,
+     "departure": 42344
+    },
+    {
+     "customer": 98,
+     "arrival": 42407,
+     "wait": 0,
+     "service_start": 42407,
+     "departure": 42728
+    },
+    {
+     "customer": 38,
+     "arrival": 42737,
+     "wait": 0,
+     "service_start": 42737,
+     "departure": 43058
+    },
+    {
+     "customer": 43,
+     "arrival": 43085,
+     "wait": 0,
+     "service_start": 43085,
+     "departure": 43298
+    },
+    {
+     "customer": 100,
+     "arrival": 43371,
+     "wait": 0,
+     "service_start": 43371,
+     "departure": 43650
+    },
+    {
+     "customer": 93,
+     "arrival": 43803,
+     "wait": 0,
+     "service_start": 43803,
+     "departure": 44139
+    },
+    {
+     "customer": 42,
+     "arrival": 44252,
+     "wait": 0,
+     "service_start": 44252,
+     "departure": 44537
+    },
+    {
+     "customer": 3,
+     "arrival": 44659,
+     "wait": 1781,
+     "service_start": 46440,
+     "departure": 48924
+    },
+    {
+     "customer": 22,
+     "arrival": 48966,
+     "wait": 0,
+     "service_start": 48966,
+     "departure": 49257
+    },
+    {
+     "customer": 11,
+     "arrival": 49298,
+     "wait": 0,
+     "service_start": 49298,
+     "departure": 49529
+    },
+    {
+     "customer": 18,
+     "arrival": 49610,
+     "wait": 0,
+     "service_start": 49610,
+     "departure": 49952
+    },
+    {
+     "customer": 15,
+     "arrival": 49995,
+     "wait": 0,
+     "service_start": 49995,
+     "departure": 50262
+    },
+    {
+     "customer": 5,
+     "arrival": 50355,
+     "wait": 1125,
+     "service_start": 51480,
+     "departure": 51825
+    },
+    {
+     "customer": 79,
+     "arrival": 51897,
+     "wait": 0,
+     "service_start": 51897,
+     "departure": 52227
+    },
+    {
+     "customer": 61,
+     "arrival": 52418,
+     "wait": 0,
+     "service_start": 52418,
+     "departure": 52718
+    }
+   ]
+  },
+  {
+   "vehicle_id": 5,
+   "vehicle_type": "medium",
+   "depart": 50018,
+   "return": 63864,
+   "load": 1437,
+   "capacity": 1600,
+   "distance_m": 65956,
+   "fixed_cost": 30000,
+   "variable_cost": 32981,
+   "cost": 62981,
+   "stops": [
+    {
+     "customer": 56,
+     "arrival": 53383,
+     "wait": 0,
+     "service_start": 53383,
+     "departure": 53734
+    },
+    {
+     "customer": 25,
+     "arrival": 53935,
+     "wait": 0,
+     "service_start": 53935,
+     "departure": 54268
     },
     {
      "customer": 34,
@@ -658,184 +774,16 @@
    ]
   },
   {
-   "vehicle_id": 5,
-   "vehicle_type": "medium",
-   "depart": 38179,
-   "return": 56761,
-   "load": 1554,
-   "capacity": 1600,
-   "distance_m": 60163,
-   "fixed_cost": 30000,
-   "variable_cost": 30083,
-   "cost": 60083,
-   "stops": [
-    {
-     "customer": 96,
-     "arrival": 40791,
-     "wait": 0,
-     "service_start": 40791,
-     "departure": 41130
-    },
-    {
-     "customer": 80,
-     "arrival": 41188,
-     "wait": 0,
-     "service_start": 41188,
-     "departure": 41464
-    },
-    {
-     "customer": 21,
-     "arrival": 41595,
-     "wait": 0,
-     "service_start": 41595,
-     "departure": 41835
-    },
-    {
-     "customer": 78,
-     "arrival": 41948,
-     "wait": 0,
-     "service_start": 41948,
-     "departure": 42209
-    },
-    {
-     "customer": 17,
-     "arrival": 42286,
-     "wait": 0,
-     "service_start": 42286,
-     "departure": 42643
-    },
-    {
-     "customer": 19,
-     "arrival": 42707,
-     "wait": 0,
-     "service_start": 42707,
-     "departure": 43046
-    },
-    {
-     "customer": 98,
-     "arrival": 43109,
-     "wait": 0,
-     "service_start": 43109,
-     "departure": 43430
-    },
-    {
-     "customer": 38,
-     "arrival": 43439,
-     "wait": 0,
-     "service_start": 43439,
-     "departure": 43760
-    },
-    {
-     "customer": 100,
-     "arrival": 43852,
-     "wait": 0,
-     "service_start": 43852,
-     "departure": 44131
-    },
-    {
-     "customer": 93,
-     "arrival": 44284,
-     "wait": 0,
-     "service_start": 44284,
-     "departure": 44620
-    },
-    {
-     "customer": 42,
-     "arrival": 44733,
-     "wait": 0,
-     "service_start": 44733,
-     "departure": 45018
-    },
-    {
-     "customer": 48,
-     "arrival": 45195,
-     "wait": 0,
-     "service_start": 45195,
-     "departure": 45477
-    },
-    {
-     "customer": 59,
-     "arrival": 45495,
-     "wait": 0,
-     "service_start": 45495,
-     "departure": 45783
-    },
-    {
-     "customer": 27,
-     "arrival": 45840,
-     "wait": 0,
-     "service_start": 45840,
-     "departure": 46071
-    },
-    {
-     "customer": 95,
-     "arrival": 46109,
-     "wait": 0,
-     "service_start": 46109,
-     "departure": 46355
-    },
-    {
-     "customer": 11,
-     "arrival": 46394,
-     "wait": 1126,
-     "service_start": 47520,
-     "departure": 47751
-    },
-    {
-     "customer": 22,
-     "arrival": 47792,
-     "wait": 0,
-     "service_start": 47792,
-     "departure": 48083
-    },
-    {
-     "customer": 3,
-     "arrival": 48125,
-     "wait": 0,
-     "service_start": 48125,
-     "departure": 50609
-    },
-    {
-     "customer": 55,
-     "arrival": 50763,
-     "wait": 1617,
-     "service_start": 52380,
-     "departure": 52620
-    },
-    {
-     "customer": 5,
-     "arrival": 52758,
-     "wait": 0,
-     "service_start": 52758,
-     "departure": 53103
-    },
-    {
-     "customer": 79,
-     "arrival": 53175,
-     "wait": 0,
-     "service_start": 53175,
-     "departure": 53505
-    },
-    {
-     "customer": 61,
-     "arrival": 53696,
-     "wait": 0,
-     "service_start": 53696,
-     "departure": 53996
-    }
-   ]
-  },
-  {
    "vehicle_id": 6,
    "vehicle_type": "large",
    "depart": 38146,
-   "return": 60459,
-   "load": 3176,
+   "return": 61334,
+   "load": 3116,
    "capacity": 3200,
-   "distance_m": 54452,
+   "distance_m": 58487,
    "fixed_cost": 45000,
-   "variable_cost": 38117,
-   "cost": 83117,
+   "variable_cost": 40942,
+   "cost": 85942,
    "stops": [
     {
      "customer": 8,
@@ -845,67 +793,137 @@
      "departure": 41217
     },
     {
-     "customer": 2,
-     "arrival": 41265,
+     "customer": 9,
+     "arrival": 41271,
      "wait": 0,
-     "service_start": 41265,
-     "departure": 44412
+     "service_start": 41271,
+     "departure": 41625
+    },
+    {
+     "customer": 2,
+     "arrival": 41639,
+     "wait": 0,
+     "service_start": 41639,
+     "departure": 44786
+    },
+    {
+     "customer": 10,
+     "arrival": 44816,
+     "wait": 0,
+     "service_start": 44816,
+     "departure": 45101
     },
     {
      "customer": 46,
-     "arrival": 44631,
+     "arrival": 45290,
      "wait": 0,
-     "service_start": 44631,
-     "departure": 45867
+     "service_start": 45290,
+     "departure": 46526
     },
     {
      "customer": 29,
-     "arrival": 45888,
+     "arrival": 46547,
      "wait": 0,
-     "service_start": 45888,
-     "departure": 46182
+     "service_start": 46547,
+     "departure": 46841
     },
     {
      "customer": 92,
-     "arrival": 46412,
+     "arrival": 47071,
      "wait": 0,
-     "service_start": 46412,
-     "departure": 48758
+     "service_start": 47071,
+     "departure": 49417
     },
     {
-     "customer": 87,
-     "arrival": 48786,
+     "customer": 55,
+     "arrival": 49540,
+     "wait": 2840,
+     "service_start": 52380,
+     "departure": 52620
+    },
+    {
+     "customer": 49,
+     "arrival": 52683,
      "wait": 0,
-     "service_start": 48786,
-     "departure": 50382
+     "service_start": 52683,
+     "departure": 52971
+    },
+    {
+     "customer": 20,
+     "arrival": 53000,
+     "wait": 0,
+     "service_start": 53000,
+     "departure": 53255
+    },
+    {
+     "customer": 64,
+     "arrival": 53295,
+     "wait": 0,
+     "service_start": 53295,
+     "departure": 53532
+    },
+    {
+     "customer": 14,
+     "arrival": 53562,
+     "wait": 0,
+     "service_start": 53562,
+     "departure": 53889
+    },
+    {
+     "customer": 47,
+     "arrival": 53983,
+     "wait": 0,
+     "service_start": 53983,
+     "departure": 54307
+    },
+    {
+     "customer": 45,
+     "arrival": 54396,
+     "wait": 384,
+     "service_start": 54780,
+     "departure": 55050
     },
     {
      "customer": 53,
-     "arrival": 50520,
-     "wait": 3600,
-     "service_start": 54120,
-     "departure": 55767
+     "arrival": 55143,
+     "wait": 0,
+     "service_start": 55143,
+     "departure": 56790
     },
     {
      "customer": 31,
-     "arrival": 55780,
+     "arrival": 56803,
      "wait": 0,
-     "service_start": 55780,
-     "departure": 56050
+     "service_start": 56803,
+     "departure": 57073
     },
     {
      "customer": 94,
-     "arrival": 56088,
-     "wait": 852,
-     "service_start": 56940,
-     "departure": 57207
+     "arrival": 57111,
+     "wait": 0,
+     "service_start": 57111,
+     "departure": 57378
+    },
+    {
+     "customer": 23,
+     "arrival": 57422,
+     "wait": 0,
+     "service_start": 57422,
+     "departure": 57716
     },
     {
      "customer": 6,
-     "arrival": 57282,
+     "arrival": 57809,
      "wait": 0,
-     "service_start": 57282,
-     "departure": 57570
+     "service_start": 57809,
+     "departure": 58097
+    },
+    {
+     "customer": 89,
+     "arrival": 58168,
+     "wait": 0,
+     "service_start": 58168,
+     "departure": 58510
     }
    ]
   }
@@ -938,12 +956,12 @@
    "capacity": 2,
    "time_window": 0
   },
-  "total_cost": 335455,
-  "fixed_cost": 165000,
-  "variable_cost": 170455,
-  "distance_km": 378.887,
+  "total_cost": 378235,
+  "fixed_cost": 185000,
+  "variable_cost": 193235,
+  "distance_km": 440.825,
   "vehicles_used": {
-   "small": 3,
+   "small": 4,
    "medium": 2,
    "large": 1
   },
@@ -952,17 +970,17 @@
    "medium": 2,
    "large": 1
   },
-  "vehicles_used_total": 6,
-  "route_time_h": 28.394,
-  "travel_h": 12.627,
-  "wait_h": 3.945,
+  "vehicles_used_total": 7,
+  "route_time_h": 30.099,
+  "travel_h": 14.693,
+  "wait_h": 3.584,
   "service_h": 11.822,
-  "capacity_utilisation_mean": 0.9258,
-  "stops_per_vehicle_mean": 16.333,
-  "tw_slack_mean_min": 50.25,
+  "capacity_utilisation_mean": 0.8163,
+  "stops_per_vehicle_mean": 14.0,
+  "tw_slack_mean_min": 54.45,
   "objective": [
    98,
-   335455
+   378235
   ]
  },
  "validation": {
@@ -971,19 +989,14 @@
  },
  "trace": [
   [
-   0.031,
-   0,
-   0
+   0.993,
+   98,
+   378746
   ],
   [
-   0.992,
+   2.993,
    98,
-   372834
-  ],
-  [
-   3.992,
-   98,
-   335455
+   378235
   ]
  ]
 }

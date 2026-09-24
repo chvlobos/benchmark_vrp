@@ -54,7 +54,7 @@ source .venv/bin/activate
 python --version            # Python 3.11.x — inside the venv, `python` is now 3.11
 pip install --upgrade pip
 pip install -r requirements.txt -e ".[dev]"
-pytest -q                   # 97 tests (3 of them skipped without a Hexaly license)
+pytest -q                   # 104 tests (9 of them skipped without a Hexaly license)
 ```
 
 The `hexaly` package installs with the requirements, but solving needs a license
@@ -65,7 +65,7 @@ export HX_LICENSE_PATH=/absolute/path/to/license.dat
 pytest -q tests/test_hexaly.py -ra
 ```
 
-The three license-dependent tests must show as *passed*, not *skipped* (a skip means the
+The nine license-dependent tests must show as *passed*, not *skipped* (a skip means the
 license was not found). `HX_LICENSE_PATH` must be set in every shell that runs `bench`
 (or put the file where Hexaly looks by default, `/opt/hexaly_15_0/license.dat`, or set
 `hexaly.license_path` in `configs/run.default.yaml`). `HX_LICENSE_CONTENT` with the key text
@@ -141,10 +141,12 @@ present are left out of the page (and listed), so a half-finished run never bias
 
 The published run: 108 instances × 4 solvers = 432 results, all valid, one common wall-clock
 cap per size (60 / 60 / 120 / 180 s), seed 42, single thread each, 2 parallel workers on the
-same 2-core Linux box (Python 3.11.15, OR-Tools 9.15, Hexaly 15.0). The three open-source
-columns were run on 2026-09-02 and the Hexaly column added on 2026-09-16 with `bench run
---solvers hexaly` on the same run directory (the runner resumes: nothing was recomputed, same
-machine, same limits). The report is [`results/final/report.html`](results/final/report.html)
+same 2-core Linux box (Python 3.11.15, OR-Tools 9.15, Hexaly 15.0; a CPU probe recorded in
+`run_meta.json` confirms two concurrent jobs get two full cores). The three open-source columns
+were run on 2026-09-02; the Hexaly column was added on 2026-09-16 with the template's
+disjoint-list formulation and replaced on 2026-09-23 by the dummy-list formulation (see
+*Modelling choices for Hexaly* below), each time with `bench run` on the same run directory —
+nothing else was recomputed. The report is [`results/final/report.html`](results/final/report.html)
 (self-contained, open it in a browser) and the tables are in `results/final/tables/`;
 `results/final/` is the complete run directory — every `solution.json` (re-validate any of
 them with `bench validate`), `log.jsonl` and `run_meta.json` — minus the plots, so
@@ -155,66 +157,100 @@ gap = cost / best cost − 1.
 
 | Solver | Instances at best coverage | Customers missed (sum) | Best cost (wins) | Mean cost gap | Median | Worst | Mean time to best |
 |---|---|---|---|---|---|---|---|
-| OR-Tools | 108 / 108 | 0 | 74 | 0.8 % | 0.0 % | 6.8 % | 79 s |
-| Hexaly (1 thread) | 78 / 108 | 51 | 20 | 3.2 % | 1.8 % | 18.1 % | 81 s |
-| CW + local search | 89 / 108 | 24 | 14 | 2.9 % | 2.3 % | 12.8 % | 48 s |
-| Clarke-Wright | 80 / 108 | 71 | 0 | 19.3 % | 17.8 % | 52.8 % | 0.3 s (wall 0.9 s) |
+| OR-Tools | 108 / 108 | 0 | 57 | 1.2 % | 0.0 % | 9.5 % | 79 s |
+| Hexaly (1 thread) | 79 / 108 | 46 | 39 | 1.7 % | 0.2 % | 13.0 % | 87 s |
+| CW + local search | 89 / 108 | 24 | 12 | 3.5 % | 3.3 % | 12.8 % | 48 s |
+| Clarke-Wright | 80 / 108 | 71 | 0 | 20.0 % | 19.7 % | 52.8 % | 0.3 s (wall 0.9 s) |
 
 What the numbers say, in short:
 
-* **OR-Tools is the reference.** It never misses the best known coverage, has the best cost on
-  74 of 108 instances, and where it does not win it is within 6.8 %. Head to head with Hexaly it
-  serves more customers on 30 instances and fewer on none; at equal coverage it is cheaper on 52
-  and dearer on 26, Hexaly costing +2.2 % on average (median +1.3 %, range −6.3 % to +18.1 %).
-* **Hexaly, single-threaded and with its template model, loses on coverage, not on cost.** 50 of
-  its 51 missed customers are on the over-subscribed (105 %) instances, where it reaches the best
-  known coverage on only 7 of 36 — and on those 7 its cost gap is 0.2 %. Its gap shrinks with
-  size (5.0 % at n = 100 → 1.4 % at n = 600) and its outright wins grow with it (5, 2, 6, 7 by
-  size); at 85 % stress it has the best cost on 13 of 36 instances. Against the own heuristic
-  it is a draw on cost at equal coverage (cheaper on 48, dearer on 36, −0.1 % on average) but
-  reaches the best known coverage less often (78 vs 89). The shortfall is not an artefact of
-  the soft-lateness formulation: the hard-constraint variant served fewer customers on the two
-  over-subscribed instances it was tried on (table below).
-* **The own heuristic is close but not equal.** CW + local search is within 2.9 % on average and
-  at full coverage everywhere at 60 % and 85 % stress; the 24 customers it misses are all on
-  105 % instances, where OR-Tools consolidates one or two more customers into the same fleet.
-  Its gap grows with tighter windows (2.3 % on L → 3.7 % on T) and shrinks with size (3.0 % at
-  n = 100 → 2.4 % at n = 600) — the latter partly because OR-Tools is still improving when the
-  180 s cap stops it (time to best 150 s of 180 on average at n = 600; Hexaly 141 s), so the
-  gaps at the largest size say as much about the limit as about the methods.
+* **On cost, Hexaly and OR-Tools are at parity; on coverage, OR-Tools wins.** Head to head on
+  the 108 instances, OR-Tools serves more customers on 29 and fewer on none; at equal
+  coverage Hexaly is cheaper on 44 and dearer on 35, +0.3 % on average and −0.4 % in median
+  (range −8.7 % to +13.0 %). Hexaly's cost gap shrinks with size (3.5 % at n = 100 → 0.7 % at
+  n = 600) while OR-Tools' grows (0.6 % → 1.6 %); by outright wins it is 15 / 18 / 12 / 12 for
+  OR-Tools against 6 / 6 / 13 / 14 for Hexaly by size. Under the benchmark's own objective —
+  coverage first — OR-Tools is still the reference, because 45 of Hexaly's 46 missed customers
+  are on the over-subscribed (105 %) instances, where it reaches the best known coverage on
+  only 8 of 36 (and on those 8 its gap is 1.5 %).
+* **Hexaly beats the own heuristic on cost, not on coverage.** Against CW + local search it is
+  cheaper on 63 and dearer on 23 at equal coverage (−1.8 % on average, −2.5 % in median) and
+  serves more customers on 2 instances, fewer on 20.
+* **The own heuristic is close but not equal.** CW + local search is within 3.5 % on average
+  and at full coverage everywhere at 60 % and 85 % stress; the 24 customers it misses are all
+  on 105 % instances, where OR-Tools consolidates one or two more customers into the same
+  fleet. Its gap grows with tighter windows (2.2 % on L → 4.5 % on T).
+* **Both solvers are still improving at n = 600** (time to best 150 s of 180 for OR-Tools,
+  164 s for Hexaly on average), so the gaps at the largest size say as much about the limit as
+  about the methods — the reason for the 360 s experiment below.
 * **Local search is what makes the heuristic usable.** Plain Clarke-Wright is 15.7 % more
   expensive than CW + LS at equal coverage and misses 71 customers, but answers in about a
   second; a first plan or a warm start, not an optimiser.
 * **Everything is reproducible and re-judged.** Every result was re-evaluated from its visiting
   orders by the independent validator, and on all 432 results the (served, cost) the solver
   itself reported for its final solution — OR-Tools' objective net of the drop penalties,
-  Hexaly's two objective values — equals what the validator recomputed.
+  Hexaly's objective values — equals what the validator recomputed.
+
+### Secondary experiments (`results/experiments/`)
+
+Three questions the equal-footing table cannot answer by itself, each a full `bench run`
+judged against `results/final` with `bench compare` (details, per-instance CSVs and the
+reproduction commands in [`results/experiments/README.md`](results/experiments/README.md)):
+
+* **Is the objective's shape the reason Hexaly misses customers?** No. With one penalised
+  scalar (cost + P × unserved, the shape OR-Tools optimises) instead of the lexicographic pair,
+  Hexaly missed 56 customers instead of 51 and cost +0.02 % at equal coverage
+  (`hexaly_penalised/`, disjoint formulation, one thread).
+* **What does Hexaly do with the whole machine?** With `nb_threads = 2` — its default setting,
+  the two cores any laptop has — and the same limits, it becomes the best method of the table
+  on cost and nearly closes the coverage gap: 17 customers missed instead of 46 (best known
+  coverage on 93 of 108), best cost on 56 instances against 41 for single-threaded OR-Tools,
+  cheaper than OR-Tools on 65 and dearer on 28 at equal coverage (−1.0 % mean, −0.9 % median);
+  OR-Tools still serves more customers on 15 instances and fewer on none
+  (`hexaly_2threads/`). Not equal footing with the single-threaded columns, and labelled so.
+* **Are the n = 600 results a statement about the 180 s limit?** No. With 360 s for every
+  solver, each time-bound method improved by the same ≈ 0.6 % and the differences between
+  them stayed put: Hexaly vs OR-Tools −1.5 % at equal coverage and behind on coverage on 8 of
+  27 instances (at 180 s: −1.4 %, 8); CW + LS vs OR-Tools +1.2 % either way. Both solvers were
+  still improving at 360 s (time to best ≈ 315–320 s), so longer limits would move everyone
+  again, together (`n600_360s/`, Clarke-Wright as the unchanged control).
 
 **What this says about the license question.** At one thread and these limits, on a textbook
-CVRPTW with a heterogeneous fleet, the free OR-Tools Routing library beats Hexaly on the
-benchmark's own objective, and the in-house heuristic is roughly Hexaly's equal. That is the
-setting this benchmark was designed to measure, and it is not Hexaly's best setting: its model
-is plain arithmetic on list variables (any extra business rule is one more expression, not a
-new Routing dimension or callback), and it is multi-threaded by design. The follow-ups worth
-running before a final decision, all a config change or a few lines away: `hexaly.nb_threads`
-at the machine's core count and a longer tier for n = 600 (clearly labelled as a secondary,
-non-equal-footing experiment), and a single penalised objective (served × big-M − cost, the
-shape OR-Tools optimises) in place of the lexicographic pair.
+CVRPTW with a heterogeneous fleet, the free OR-Tools Routing library and Hexaly produce plans
+of the same cost, OR-Tools squeezes in the last customer more often when the fleet is short,
+and the in-house heuristic is 2–3 % behind both; doubling the time limit changes none of that.
+Give Hexaly the second core and it is the cheapest method on the set, 1 % under OR-Tools at
+equal coverage, with the coverage gap down to 15 customers in 108 instances. Its case is
+therefore its default setting and its modelling style — plain arithmetic on list variables,
+where any extra business rule is one more expression rather than a new Routing dimension or
+callback, and where the formulation choices above were each a one-line change — rather than
+single-core quality on a textbook problem, where OR-Tools remains the reference for free.
 
-**Modelling choice for Hexaly.** Its two ways of handling the time windows were compared once
-on three instances at the common limits (2026-09-16, same machine, one thread;
-`configs/run.hexaly_hard.yaml` for the hard side) before the full run — the same kind of
-documented choice that was made for OR-Tools (guided local search):
+### Modelling choices for Hexaly
 
-| instance (limit) | soft: served / cost | hard: served / cost |
-|---|---|---|
-| C-200-M-85 (60 s) | 200 / 634 804 | 200 / 638 646 |
-| RC-200-T-105 (60 s) | **198** / 690 863 | 196 / 692 187 |
-| R-400-T-105 (120 s) | **395** / 1 328 209 | 394 / 1 309 748 |
+Two documented choices, both made on data at the common limits and one thread — the same kind
+of choice that was made for OR-Tools (guided local search):
 
-`soft` (Hexaly's own template idiom) wins on all three under the coverage-first objective and
-is the default (`hexaly.time_windows` in `configs/run.default.yaml`). The six solutions and
-logs of this experiment are in `results/experiments/hexaly_time_windows/`.
+*Time windows.* Hexaly's own template handles them as a first-priority lateness objective
+rather than as constraints (`hexaly.time_windows: soft`, the default); `hard` posts them as
+constraints. Compared on three instances (2026-09-16, `configs/run.hexaly_hard.yaml` for the
+hard side): soft 200 / 634 804 · **198** / 690 863 · **395** / 1 328 209 against hard
+200 / 638 646 · 196 / 692 187 · 394 / 1 309 748 on C-200-M-85 · RC-200-T-105 · R-400-T-105 —
+soft wins on all three under the coverage-first objective. Files in
+`results/experiments/hexaly_time_windows/`.
+
+*Optional customers.* The template's idiom is one list per vehicle and `disjoint` over them
+(a customer may be in no list). The alternative — the vehicle lists plus one extra uncosted,
+unconstrained list that collects the unserved customers, under `partition`
+(`hexaly.unserved: dummy_list`, now the default) — has the same feasible set and objective,
+but on this benchmark Hexaly 15 maintains the partition form about 2.8× faster (iterations
+per second) and only parallelises partition models (a `disjoint` model stays on one core
+whatever `nb_threads` says; measured, see `results/experiments/README.md`). Compared on all
+108 instances at one thread (2026-09-23, `results/experiments/hexaly_dummy/comparison.md`):
+the dummy-list formulation is cheaper on 54 instances and dearer on 36 at equal coverage
+(−1.1 % on average), misses 46 customers instead of 51 and has the best cost on 33 instead of
+13, so it replaced the disjoint column in `results/final/`; the disjoint run is kept whole in
+`results/experiments/hexaly_disjoint/`.
 
 **Re-running everything on another machine** (for instance a faster desktop, to see all four
 methods more converged at the same limits):
@@ -260,7 +296,10 @@ does it: total lateness is a first-priority objective driven to zero (`time_wind
 the default — it keeps the search space connected), with `time_windows: hard` posting them as
 constraints instead; the validator accepts zero lateness only, and a run whose final lateness
 is not zero is reported as an error, never as a result. Objectives in lexicographic order:
-[minimise lateness,] maximise the customers served, minimise the total cost. What differs
+[minimise lateness,] maximise the customers served, minimise the total cost (`hexaly.objective:
+penalised` folds the last two into one scalar, cost + P × unserved, for experiments). Optional customers are
+modelled either as disjoint vehicle lists (`hexaly.unserved: disjoint`, the template idiom) or as a partition
+of the vehicle lists plus one uncosted "unserved" list (`dummy_list`, the default — see *Modelling choices*). What differs
 from the template is what the benchmark demands: `disjoint` instead of `partition` (customers
 are optional, so *served* is an objective), per-vehicle capacities and per-type cost matrices
 (heterogeneous fleet), fixed cost per vehicle used instead of a vehicle count, and integer
@@ -364,7 +403,7 @@ src/cvrptw_bench/
   run.py      solve_one (time-limit tiers, solver params, artefacts), run_benchmark (resumable, parallel)
   viz/        style.py  map_static.py  map_html.py  gantt.py
   report/     aggregate.py (tables, gaps, profiles)  charts.py (Plotly)  build_html.py (report + conclusions)
-  cli.py      bench info | validate | generate | plot | solve | run | report | version
+  cli.py      bench info | validate | generate | plot | solve | run | report | compare | version
 configs/      generator.default.yaml  run.default.yaml
 tests/        pytest suite; tests/data holds a hand-checked toy instance and broken solutions
 instances/    the 108-instance benchmark set + seed solutions + index.csv
