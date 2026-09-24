@@ -233,11 +233,10 @@ def _conclusions(df: pd.DataFrame, stats: dict[str, dict], meta: dict) -> list[s
             f"{len(at_top)} its cost gap is only {_pct(float(100 * at_top['cost_gap'].mean())) if len(at_top) else '–'}. "
             "Its best-cost wins by size: "
             + ", ".join(f"{int(v)} at n={int(k)}" for k, v in by_n_wins.items())
-            + ". The shortfall is not an artefact of the soft-lateness formulation: the hard-constraint variant "
-            "served fewer customers on the two over-subscribed instances it was tried on. Follow-ups worth running "
-            "before drawing a final line: more threads and a longer limit (Hexaly's natural setting, deliberately "
-            "not used here), and a single penalised objective (served × big-M − cost, the shape OR-Tools "
-            "optimises) instead of the lexicographic pair."
+            + ". The shortfall is not an artefact of the objective's shape: in the secondary experiments "
+            "(results/experiments/README.md) neither hard time-window constraints nor a single penalised objective "
+            "(served × big-M − cost, the shape OR-Tools optimises) served more customers. Thread count and a longer "
+            "limit — Hexaly's natural setting, deliberately not used in this equal-footing table — are studied there too."
         )
         pwc = _pairwise(df, "hexaly", "cw_ls")
         if pwc:
@@ -402,8 +401,9 @@ def _recommendations(df: pd.DataFrame, stats: dict[str, dict]) -> list[tuple[str
                 "Routing model and about 900 for the own heuristic): not shorter than OR-Tools on a textbook "
                 "CVRPTW, but every extra business rule is one more expression rather than a new dimension or "
                 "callback, and it is multi-threaded out of the box, which this single-thread comparison does not "
-                "credit. Judge the license against the head-to-head with OR-Tools above and against the kind of "
-                "side constraints your real problems carry.",
+                "credit (results/experiments/ holds the multi-thread and longer-limit runs, judged against this "
+                "table). Judge the license against the head-to-head with OR-Tools above, those experiments, and "
+                "the kind of side constraints your real problems carry.",
             )
         )
     else:
@@ -760,6 +760,14 @@ def build_report(
             )
 
     hw = meta.get("host", {})
+    probe = meta.get("cpu_probe") or {}
+    probe_txt = (
+        f" A CPU probe at the start of the run measured {probe.get('effective_cores', '?')} effective core(s) for "
+        f"{meta.get('workers', 1)} concurrent jobs (each job ran {probe.get('slowdown', '?')}x slower than alone), "
+        "so the limits below are wall-clock seconds of that share of a core — the same share for every solver."
+        if probe.get("effective_cores") is not None
+        else ""
+    )
     setup = (
         f"Run started {meta.get('started', '?')} on {hw.get('platform', '?')} ({hw.get('cpu_count', '?')} logical CPUs), "
         f"Python {hw.get('python', '?')}, OR-Tools {hw.get('packages', {}).get('ortools', '?')}, "
@@ -767,6 +775,7 @@ def build_report(
         + ", ".join(SOLVER_LABEL.get(s, s) for s in solvers)
         + f". {n_inst} instances, {len(df[df['solver'] != SEED_NAME])} solver results, "
         f"{total_h:.1f} h of solver wall time with {meta.get('workers', 1)} worker(s)."
+        + probe_txt
         + (
             f" The run directory was resumed {len(meta['resumed'])} time(s) (last {meta['resumed'][-1]}): "
             "an interrupted run continues where it stopped and a solver added later runs only its own jobs, "

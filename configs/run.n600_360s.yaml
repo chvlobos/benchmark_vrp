@@ -1,0 +1,30 @@
+# Secondary experiment: the largest size (n = 600) with twice the common limit, 360 s
+# instead of 180 s, for EVERY solver (still equal footing among them). Run with
+# --sizes 600. Answers "are the 180 s results at n = 600 a statement about the limit?"
+
+seed: 42
+solvers: [cw, cw_ls, ortools, hexaly]
+time_limits_s:
+  600: 360
+  default: 360
+threads: 1
+cw:
+  multistart_runs: 20
+  lambda_range: [0.6, 1.4]
+  savings_noise: 0.10
+  neighbours: 30
+cw_ls:
+  neighbours: 30
+ortools:
+  first_solution: PATH_CHEAPEST_ARC
+  metaheuristic: GUIDED_LOCAL_SEARCH
+  log_search: false
+hexaly:
+  nb_threads: 1
+  license_path: null
+  time_windows: soft
+  objective: lexicographic
+  unserved: dummy_list
+outputs:
+  plots: false
+  basemap: esri-gray

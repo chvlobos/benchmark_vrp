@@ -32,6 +32,8 @@ hexaly:
   nb_threads: 1                       # Hexaly is multi-threaded by default; 1 for the fair comparison
   license_path: null                  # null: Hexaly's default license.dat location or HX_LICENSE_PATH
   time_windows: soft                  # soft: lateness as first objective (Hexaly's CVRPTW template) | hard: constraints
+  objective: lexicographic            # lexicographic: maximise served, then minimise cost | penalised: one scalar
+  unserved: dummy_list                # dummy_list: partition with an uncosted "unserved" list | disjoint: template idiom
 
 outputs:
   plots: true                         # map.png, map.html, gantt.png per instance x solver

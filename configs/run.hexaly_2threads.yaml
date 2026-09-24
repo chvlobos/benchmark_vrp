@@ -1,0 +1,33 @@
+# Secondary experiment: Hexaly with every core of the machine (its default setting) - run
+# with --workers 1 so each job owns the whole machine. Uses the dummy-list (partition)
+# formulation because Hexaly 15 does not parallelise disjoint-list models (measured).
+# Same limits and seed as results/final.
+
+seed: 42
+solvers: [hexaly]
+time_limits_s:
+  200: 60
+  400: 120
+  600: 180
+  default: 300
+threads: 2
+cw:
+  multistart_runs: 20
+  lambda_range: [0.6, 1.4]
+  savings_noise: 0.10
+  neighbours: 30
+cw_ls:
+  neighbours: 30
+ortools:
+  first_solution: PATH_CHEAPEST_ARC
+  metaheuristic: GUIDED_LOCAL_SEARCH
+  log_search: false
+hexaly:
+  nb_threads: 2
+  license_path: null
+  time_windows: soft
+  objective: lexicographic
+  unserved: dummy_list
+outputs:
+  plots: false
+  basemap: esri-gray

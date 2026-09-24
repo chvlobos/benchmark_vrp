@@ -44,22 +44,47 @@ def test_registry_has_hexaly():
 
 
 @needs_license
-@pytest.mark.parametrize("mode,n_obj", [("soft", 3), ("hard", 2)])
-def test_build_model_shape(toy_instance, toy_matrices, mode, n_obj):
+@pytest.mark.parametrize(
+    "mode,objective,unserved,n_obj",
+    [
+        ("soft", "lexicographic", "disjoint", 3),
+        ("hard", "lexicographic", "disjoint", 2),
+        ("soft", "penalised", "disjoint", 2),
+        ("soft", "lexicographic", "dummy_list", 3),
+    ],
+)
+def test_build_model_shape(toy_instance, toy_matrices, mode, objective, unserved, n_obj):
     with hx.HexalyOptimizer() as optimizer:
-        exprs = build_model(optimizer, toy_instance, toy_matrices, mode)
+        exprs = build_model(optimizer, toy_instance, toy_matrices, mode, objective, unserved)
         assert len(exprs["seqs"]) == toy_instance.n_vehicles == 3
+        assert optimizer.model.nb_decisions == 3 + (unserved == "dummy_list")
         assert optimizer.model.nb_objectives == n_obj
         assert (exprs["lateness"] is None) == (mode == "hard")
+        assert (exprs["penalty"] is None) == (objective == "lexicographic")
         assert optimizer.model.is_closed()
 
 
 @needs_license
-@pytest.mark.parametrize("mode", ["soft", "hard"])
-def test_hexaly_toy_matches_validator(toy_instance, toy_matrices, mode):
+@pytest.mark.parametrize(
+    "mode,objective,unserved",
+    [
+        ("soft", "lexicographic", "disjoint"),
+        ("hard", "lexicographic", "disjoint"),
+        ("soft", "penalised", "disjoint"),
+        ("soft", "lexicographic", "dummy_list"),
+    ],
+)
+def test_hexaly_toy_matches_validator(toy_instance, toy_matrices, mode, objective, unserved):
     solver = HexalySolver()
     cfg = SolverConfig(
-        time_limit_s=3, seed=1, params={"license_path": LICENSE_PATH, "time_windows": mode}
+        time_limit_s=3,
+        seed=1,
+        params={
+            "license_path": LICENSE_PATH,
+            "time_windows": mode,
+            "objective": objective,
+            "unserved": unserved,
+        },
     )
     plan, run = solver.solve(toy_instance, toy_matrices, cfg)
     assert run.status == "feasible", run.message

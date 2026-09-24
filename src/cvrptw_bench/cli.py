@@ -212,6 +212,22 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_compare(args: argparse.Namespace) -> int:
+    from cvrptw_bench.report.compare import compare_runs
+
+    out = compare_runs(
+        args.base_dir,
+        args.exp_dir,
+        instances_dir=args.instances,
+        suffix=args.suffix,
+        title=args.title or f"{args.exp_dir} vs {args.base_dir}",
+        description=args.description or "",
+        out_path=args.out,
+    )
+    print(f"comparison written to {out}")
+    return 0
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bench", description="CVRPTW heterogeneous-fleet benchmark")
@@ -302,6 +318,18 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--basemap", default=None, choices=BASEMAP_CHOICES)
     s.add_argument("--dpi", type=int, default=110, help="dpi of the gallery figures")
     s.set_defaults(func=cmd_report)
+
+    s = sub.add_parser(
+        "compare", help="judge a secondary run against a base run (markdown + CSV tables)"
+    )
+    s.add_argument("base_dir", type=Path)
+    s.add_argument("exp_dir", type=Path)
+    s.add_argument("--instances", type=Path, default=Path("instances"))
+    s.add_argument("--suffix", required=True, help="appended to the variant's solver names")
+    s.add_argument("--title", default=None)
+    s.add_argument("--description", default=None, help="one paragraph on what the variant is")
+    s.add_argument("--out", type=Path, default=None, help="default <exp_dir>/comparison.md")
+    s.set_defaults(func=cmd_compare)
     return p
 
 

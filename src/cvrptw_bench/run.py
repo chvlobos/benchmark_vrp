@@ -144,6 +144,38 @@ def summary_row(sol: Solution, instance: Instance) -> dict[str, Any]:
     }
 
 
+def _burn(n: int) -> float:
+    t = time.perf_counter()
+    x = 0
+    for i in range(n):
+        x += i * i
+    return time.perf_counter() - t
+
+
+def cpu_probe(workers: int, n: int = 6_000_000) -> dict[str, float]:
+    """How much CPU the machine really gives to ``workers`` concurrent jobs.
+
+    Runs one CPU-bound loop alone and then ``workers`` copies at once; the ratio of
+    the two times is the slowdown a job suffers from its neighbours (1.0 = a full
+    core each, 2.0 = two jobs sharing one core). Recorded in run_meta.json because
+    "cpu_count" alone does not say it: a container can report 2 logical CPUs and
+    deliver the throughput of one.
+    """
+    from concurrent.futures import ProcessPoolExecutor
+
+    single = _burn(n)
+    if workers <= 1:
+        return {"single_s": round(single, 3), "parallel_s": round(single, 3), "slowdown": 1.0}
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        parallel = max(pool.map(_burn, [n] * workers))
+    return {
+        "single_s": round(single, 3),
+        "parallel_s": round(parallel, 3),
+        "slowdown": round(parallel / single, 2),
+        "effective_cores": round(workers * single / parallel, 2),
+    }
+
+
 def _existing_valid(path: Path) -> dict[str, Any] | None:
     """Summary of an existing solution.json if it is a finished, feasible run."""
     if not path.exists():
@@ -220,6 +252,7 @@ def run_benchmark(
     meta = {
         "started": now,
         "resumed": [],
+        "cpu_probe": cpu_probe(workers),
         "package_version": __version__,
         "solvers": solvers,
         "instances": [n for _, n, _ in metas],

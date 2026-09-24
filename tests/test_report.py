@@ -183,3 +183,28 @@ def test_build_report_html(mini_run, mini_instances, tmp_path):
     tables = tmp_path / "tables"
     assert (tables / "overall.csv").exists() and (tables / "results_by_instance.csv").exists()
     assert len(pd.read_csv(tables / "results_long.csv")) == 7
+
+
+def test_compare_runs_joins_variant_to_base(mini_run, mini_instances, tmp_path):
+    from cvrptw_bench.report.compare import combine, compare_runs
+
+    exp = tmp_path / "exp"
+    rows = run_benchmark(
+        {**CFG, "cw": {"multistart_runs": 2}},
+        mini_instances,
+        ["cw"],
+        exp,
+        workers=1,
+        plots=False,
+        log=lambda *_: None,
+    )
+    assert len(rows) == 2
+    df = combine(mini_run, exp, mini_instances, "_v2")
+    cats = list(df["solver"].cat.categories)
+    assert "cw_v2" in cats and cats.index("cw_v2") == cats.index("cw") + 1
+    assert df["instance"].nunique() == 2 and (df["solver"] == "cw_v2").sum() == 2
+    assert df["best_served"].notna().all()  # gaps computed over base + variant together
+    out = compare_runs(mini_run, exp, mini_instances, "_v2", "T", "d", tmp_path / "c.md")
+    text = out.read_text(encoding="utf-8")
+    assert "Clarke-Wright v2 vs Clarke-Wright" in text and "Clarke-Wright v2 vs OR-Tools" in text
+    assert (tmp_path / "comparison_by_instance.csv").exists()

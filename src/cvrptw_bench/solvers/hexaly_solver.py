@@ -3,9 +3,11 @@
 Model, on the shared integer matrices (customers are 0..n-1 inside the lists,
 i.e. matrix index minus one; the depot is handled by separate arrays):
 
-* one list variable per vehicle (the fleet expanded to individual vehicles) and
-  ``disjoint`` over the lists — a customer is visited at most once and may be
-  left unserved;
+* one list variable per vehicle (the fleet expanded to individual vehicles) plus,
+  by default, one extra uncosted list that collects the unserved customers, under a
+  ``partition`` constraint (``unserved: dummy_list``); the alternative
+  ``unserved: disjoint`` drops the extra list and posts ``disjoint`` over the
+  vehicle lists, as Hexaly's template would. Same feasible set either way;
 * capacity: sum of the demands in the list ≤ the vehicle's capacity;
 * time: recursive array of service starts, ``start_0 = max(e, opening + t_dep)``,
   ``start_i = max(e_i, start_{i-1} + s_{i-1} + t_{i-1,i})`` — free departure,
@@ -48,6 +50,15 @@ HX_DEFAULTS = {
     "verbosity": 0,
     "time_between_ticks": 1,
     "time_windows": "soft",  # soft: lateness as first objective (Hexaly's template) | hard
+    # lexicographic: maximise served, then minimise cost (the benchmark's objective as two
+    # Hexaly objectives) | penalised: one scalar, cost + P x unserved with P above any routing
+    # cost (the shape OR-Tools optimises); same optimum, different search landscape
+    "objective": "lexicographic",
+    # dummy_list (default): partition(vehicle lists + one uncosted "unserved" list) |
+    # disjoint: one list per vehicle, disjoint(lists), a customer may be in no list (the
+    # template idiom). Same feasible set and objective; measured on this benchmark, the
+    # partition form is maintained ~2.8x faster and is the only one Hexaly 15 parallelises
+    "unserved": "dummy_list",
 }
 
 
@@ -56,10 +67,21 @@ def _configure_license(path: str | None) -> None:
         hx.version.set_license_path(str(path))
 
 
-def build_model(optimizer, instance: Instance, m: Matrices, time_windows: str = "soft") -> dict:
+def build_model(
+    optimizer,
+    instance: Instance,
+    m: Matrices,
+    time_windows: str = "soft",
+    objective: str = "lexicographic",
+    unserved: str = "dummy_list",
+) -> dict:
     """Build the model on an open optimizer. Returns the expressions needed later."""
     if time_windows not in ("soft", "hard"):
         raise ValueError(f"time_windows must be 'soft' or 'hard', got {time_windows!r}")
+    if objective not in ("lexicographic", "penalised"):
+        raise ValueError(f"objective must be 'lexicographic' or 'penalised', got {objective!r}")
+    if unserved not in ("disjoint", "dummy_list"):
+        raise ValueError(f"unserved must be 'disjoint' or 'dummy_list', got {unserved!r}")
     model = optimizer.model
     n = instance.n
     vehicles = instance.vehicles()
@@ -80,7 +102,12 @@ def build_model(optimizer, instance: Instance, m: Matrices, time_windows: str = 
 
     # --- decisions
     seqs = [model.list(n) for _ in vehicles]
-    model.constraint(model.disjoint(seqs))
+    pool = None
+    if unserved == "dummy_list":
+        pool = model.list(n)  # the customers nobody serves; no cost, no time, no capacity
+        model.constraint(model.partition([*seqs, pool]))
+    else:
+        model.constraint(model.disjoint(seqs))
 
     # NB: Hexaly counts a lambda's parameters with inspect.signature, so lambdas must
     # not capture through default arguments; each vehicle gets its own closure scope.
@@ -130,19 +157,27 @@ def build_model(optimizer, instance: Instance, m: Matrices, time_windows: str = 
         cost_terms.append(route_cost)
         late_terms.append(lateness)
 
-    served = model.sum(served_terms)
+    served = model.sum(served_terms) if pool is None else n - model.count(pool)
     total_cost = model.sum(cost_terms)
     total_lateness = model.sum(late_terms) if time_windows == "soft" else None
     if total_lateness is not None:
         model.minimize(total_lateness)  # first priority: a plan is only valid at zero
-    model.maximize(served)
-    model.minimize(total_cost)
+    penalty = None
+    if objective == "penalised":
+        from cvrptw_bench.solvers.ortools_solver import drop_penalty
+
+        penalty = drop_penalty(instance, m)
+        model.minimize(total_cost + penalty * (n - served))
+    else:
+        model.maximize(served)
+        model.minimize(total_cost)
     model.close()
     return {
         "seqs": seqs,
         "served": served,
         "total_cost": total_cost,
         "lateness": total_lateness,
+        "penalty": penalty,
         "vehicles": vehicles,
     }
 
@@ -159,7 +194,7 @@ def extract_plan(exprs: dict) -> RoutePlan:
 @register
 class HexalySolver(Solver):
     name = "hexaly"
-    version = "0.1.0"
+    version = "0.2.0"
 
     def _solve(
         self,
@@ -172,7 +207,14 @@ class HexalySolver(Solver):
         _configure_license(p.get("license_path"))
         t0 = time.perf_counter()
         with hx.HexalyOptimizer() as optimizer:
-            exprs = build_model(optimizer, instance, matrices, str(p["time_windows"]))
+            exprs = build_model(
+                optimizer,
+                instance,
+                matrices,
+                str(p["time_windows"]),
+                str(p["objective"]),
+                str(p["unserved"]),
+            )
             served, total_cost = exprs["served"], exprs["total_cost"]
             lateness = exprs["lateness"]
 
