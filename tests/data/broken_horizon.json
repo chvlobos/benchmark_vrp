@@ -1,0 +1,166 @@
+{
+ "schema_version": 1,
+ "instance": "toy-6",
+ "solver": "handmade",
+ "solver_version": "fixture",
+ "config": {},
+ "seed": null,
+ "status": "feasible",
+ "message": null,
+ "compute": {
+  "wall_time_s": 0.0,
+  "time_to_best_s": null,
+  "threads": 1,
+  "host": "Linux x86_64 (x86_64)",
+  "python": "3.11.15",
+  "packages": {
+   "numpy": "2.4.4",
+   "ortools": "9.15.6755"
+  }
+ },
+ "plan_routes": {
+  "0": [
+   1,
+   3
+  ],
+  "1": [
+   6
+  ],
+  "2": [
+   4,
+   5,
+   2
+  ]
+ },
+ "routes": [
+  {
+   "vehicle_id": 0,
+   "vehicle_type": "small",
+   "depart": 36000,
+   "return": 40105,
+   "load": 90,
+   "capacity": 100,
+   "distance_m": 21703,
+   "fixed_cost": 20000,
+   "variable_cost": 7596,
+   "cost": 27596,
+   "stops": [
+    {
+     "customer": 1,
+     "arrival": 36519,
+     "wait": 0,
+     "service_start": 36519,
+     "departure": 37119
+    },
+    {
+     "customer": 3,
+     "arrival": 37903,
+     "wait": 0,
+     "service_start": 37903,
+     "departure": 38803
+    }
+   ]
+  },
+  {
+   "vehicle_id": 1,
+   "vehicle_type": "small",
+   "depart": 41488,
+   "return": 45512,
+   "load": 45,
+   "capacity": 100,
+   "distance_m": 28528,
+   "fixed_cost": 20000,
+   "variable_cost": 9984,
+   "cost": 29984,
+   "stops": [
+    {
+     "customer": 6,
+     "arrival": 43200,
+     "wait": 0,
+     "service_start": 43200,
+     "departure": 43800
+    }
+   ]
+  },
+  {
+   "vehicle_id": 2,
+   "vehicle_type": "large",
+   "depart": 36000,
+   "return": 64896,
+   "load": 210,
+   "capacity": 250,
+   "distance_m": 52573,
+   "fixed_cost": 45000,
+   "variable_cost": 36801,
+   "cost": 81801,
+   "stops": [
+    {
+     "customer": 4,
+     "arrival": 38013,
+     "wait": 19587,
+     "service_start": 57600,
+     "departure": 59100
+    },
+    {
+     "customer": 5,
+     "arrival": 61413,
+     "wait": 0,
+     "service_start": 61413,
+     "departure": 62313
+    },
+    {
+     "customer": 2,
+     "arrival": 63455,
+     "wait": 0,
+     "service_start": 63455,
+     "departure": 64055
+    }
+   ]
+  }
+ ],
+ "unserved": [],
+ "metrics": {
+  "served": 6,
+  "unserved": 0,
+  "served_demand": 345,
+  "unserved_demand": 0,
+  "unserved_by_reason": {
+   "oversized": 0,
+   "unreachable_window": 0,
+   "insertable": 0,
+   "capacity": 0,
+   "time_window": 0
+  },
+  "total_cost": 139381,
+  "fixed_cost": 85000,
+  "variable_cost": 54381,
+  "distance_km": 102.804,
+  "vehicles_used": {
+   "small": 2,
+   "large": 1
+  },
+  "vehicles_available": {
+   "small": 2,
+   "large": 1
+  },
+  "vehicles_used_total": 3,
+  "route_time_h": 10.285,
+  "travel_h": 3.427,
+  "wait_h": 5.441,
+  "service_h": 1.417,
+  "capacity_utilisation_mean": 0.73,
+  "stops_per_vehicle_mean": 2.0,
+  "tw_slack_mean_min": 52.25,
+  "objective": [
+   6,
+   139381
+  ]
+ },
+ "validation": {
+  "valid": false,
+  "violations": [
+   "horizon: vehicle 2 returns at 64896 > closing 64800"
+  ]
+ },
+ "trace": []
+}

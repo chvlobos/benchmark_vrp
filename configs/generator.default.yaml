@@ -1,0 +1,56 @@
+# Default configuration of the instance generator (Phase 1 consumes it).
+# All times in seconds since midnight, distances in km, loads in "units" (≈ kg), money in CLP.
+
+global_seed: 42
+
+design:
+  sizes: [100, 200, 400, 600]
+  families: [R, C, RC]
+  tw_profiles: [L, M, T]
+  capacity_stress: [60, 85, 105]     # percent of fleet capacity taken by total demand
+
+horizon:
+  start: 36000                       # 10:00
+  end: 64800                         # 18:00
+
+travel:
+  speed_kmh: 30
+  detour_factor: 1.3
+  distance: haversine
+
+geography:
+  polygon: santiago_urban.geojson    # packaged under cvrptw_bench/data/
+  clusters:
+    customers_per_cluster: 40        # k ≈ n / 40
+    sigma_km: 1.2
+  rc_cluster_share: 0.5
+
+demand:
+  large_share: 0.10
+  small_range: [10, 60]
+  large_range: [200, 1000]
+
+service_time:
+  base_s: 180                        # 3 min
+  per_unit_s: 3                      # 0.05 min per unit
+
+time_windows:
+  widths_s:
+    wide: [14400, 28800]             # 4–8 h
+    medium: [5400, 10800]            # 1.5–3 h
+    tight: [1800, 3600]              # 30–60 min
+  profiles:                          # shares of wide / medium / tight
+    L: [0.70, 0.20, 0.10]
+    M: [0.33, 0.33, 0.34]
+    T: [0.10, 0.20, 0.70]
+  center_jitter_frac: 0.10
+
+fleet:
+  types:
+    - {type: small,  capacity: 800,  fixed_cost: 20000, cost_per_km: 350}
+    - {type: medium, capacity: 1600, fixed_cost: 30000, cost_per_km: 500}
+    - {type: large,  capacity: 3200, fixed_cost: 45000, cost_per_km: 700}
+  mix: [3, 2, 1]                     # vehicles per block, same order as types
+
+seed_solution:
+  duration_margin_frac: 0.10         # reference routes use at most 90 % of the horizon

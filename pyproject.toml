@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cvrptw-bench"
+version = "0.1.0"
+description = "CVRPTW with heterogeneous fleet benchmark on synthetic Santiago instances: Clarke-Wright vs OR-Tools vs Hexaly"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+authors = [{ name = "Christian Villalobos" }]
+keywords = ["vrp", "cvrptw", "heterogeneous fleet", "or-tools", "hexaly", "clarke-wright", "benchmark"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+  "numpy>=1.26",
+  "pydantic>=2.5",
+  "pyyaml>=6.0",
+  "shapely>=2.0",
+  "pandas>=2.1",
+  "matplotlib>=3.8",
+  "contextily>=1.4",
+  "folium>=0.15",
+  "plotly>=5.18",
+  "jinja2>=3.1",
+  "ortools>=9.10,<10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4"]
+hexaly = ["hexaly>=15.0,<16"]
+
+[project.scripts]
+bench = "cvrptw_bench.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/chvlobos/vrp_test_stgo"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"cvrptw_bench" = ["data/*.geojson", "report/templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+  "hexaly: tests that need a Hexaly license (skipped automatically when unavailable)",
+  "slow: long-running tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/cvrptw_bench/report/*" = ["E501"]  # prose, CSS and HTML templates live here

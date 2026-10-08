@@ -1,0 +1,40 @@
+# Default configuration of a benchmark run (`bench run`).
+
+seed: 42
+solvers: [cw, cw_ls, ortools, hexaly]
+
+# Wall-clock limit per instance, by instance size (upper bound of each tier, inclusive).
+# The SAME limit applies to every solver (cw, cw_ls, ortools, hexaly): it is a cap, and a
+# solver that finishes earlier simply reports a shorter wall time.
+time_limits_s:
+  200: 60
+  400: 120
+  600: 180
+  default: 300
+
+threads: 1                            # primary comparison is single-threaded
+
+cw:                                   # constructive only: 20 starts, usually done in seconds
+  multistart_runs: 20
+  lambda_range: [0.6, 1.4]
+  savings_noise: 0.10
+  neighbours: 30
+
+cw_ls:                                # local search from successive starts until the time limit
+  neighbours: 30
+
+ortools:
+  first_solution: PATH_CHEAPEST_ARC
+  metaheuristic: GUIDED_LOCAL_SEARCH
+  log_search: false
+
+hexaly:
+  nb_threads: 1                       # Hexaly is multi-threaded by default; 1 for the fair comparison
+  license_path: null                  # null: Hexaly's default license.dat location or HX_LICENSE_PATH
+  time_windows: soft                  # soft: lateness as first objective (Hexaly's CVRPTW template) | hard: constraints
+  objective: lexicographic            # lexicographic: maximise served, then minimise cost | penalised: one scalar
+  unserved: dummy_list                # dummy_list: partition with an uncosted "unserved" list | disjoint: template idiom
+
+outputs:
+  plots: true                         # map.png, map.html, gantt.png per instance x solver
+  basemap: esri-gray                  # esri-gray | osm | esri-street | carto (API key) | none; cached, falls back offline

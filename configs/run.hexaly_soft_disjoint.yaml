@@ -1,0 +1,31 @@
+# The soft side of the 2026-09-16 time-window comparison: lateness as a first-priority
+# objective, disjoint vehicle lists (the template idiom, before the dummy-list formulation
+# existed). Kept so results/experiments/hexaly_time_windows/soft can be reproduced.
+
+seed: 42
+solvers: [hexaly]
+time_limits_s:
+  200: 60
+  400: 120
+  600: 180
+  default: 300
+threads: 1
+cw:
+  multistart_runs: 20
+  lambda_range: [0.6, 1.4]
+  savings_noise: 0.10
+  neighbours: 30
+cw_ls:
+  neighbours: 30
+ortools:
+  first_solution: PATH_CHEAPEST_ARC
+  metaheuristic: GUIDED_LOCAL_SEARCH
+  log_search: false
+hexaly:
+  nb_threads: 1
+  license_path: null
+  unserved: disjoint
+  time_windows: soft
+outputs:
+  plots: false
+  basemap: esri-gray

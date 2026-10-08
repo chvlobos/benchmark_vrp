@@ -1,0 +1,1082 @@
+{
+ "schema_version": 1,
+ "name": "RC-100-M-85",
+ "meta": {
+  "seed": 4208884075173345758,
+  "global_seed": 42,
+  "generator_version": "0.1.0",
+  "created": "2026-09-02T14:58:16Z",
+  "factors": {
+   "n": 100,
+   "family": "RC",
+   "tw_profile": "M",
+   "capacity_stress": 85
+  },
+  "stats": {
+   "total_demand": 8955,
+   "n_large_orders": 10,
+   "fleet_capacity": 10400,
+   "n_vehicles": 7,
+   "capacity_stress_achieved": 0.8611,
+   "time_stress_est": 0.4971,
+   "n_clusters": 2,
+   "depot_to_centroid_km": 12.045,
+   "tw_width_min": {
+    "mean": 176.4,
+    "min": 32.0,
+    "max": 479.0
+   },
+   "tw_class_counts": {
+    "wide": 33,
+    "medium": 33,
+    "tight": 34
+   },
+   "seed_solution": {
+    "served": 100,
+    "unserved": 0,
+    "unserved_by_reason": {},
+    "cost": 420016,
+    "distance_km": 461.269,
+    "vehicles_used": 7
+   }
+  }
+ },
+ "horizon": {
+  "start": 36000,
+  "end": 64800
+ },
+ "travel": {
+  "speed_kmh": 30.0,
+  "detour_factor": 1.3,
+  "distance": "haversine"
+ },
+ "depot": {
+  "lat": -33.572231223307945,
+  "lon": -70.59681425395951
+ },
+ "customers": [
+  {
+   "id": 1,
+   "lat": -33.346797380472296,
+   "lon": -70.74709208010297,
+   "demand": 932,
+   "service_time": 2976,
+   "tw_start": 50940,
+   "tw_end": 57540,
+   "tw_class": "medium"
+  },
+  {
+   "id": 2,
+   "lat": -33.414203662058206,
+   "lon": -70.66346855925543,
+   "demand": 47,
+   "service_time": 321,
+   "tw_start": 36000,
+   "tw_end": 58740,
+   "tw_class": "wide"
+  },
+  {
+   "id": 3,
+   "lat": -33.54869325484125,
+   "lon": -70.62042580771202,
+   "demand": 19,
+   "service_time": 237,
+   "tw_start": 43860,
+   "tw_end": 50040,
+   "tw_class": "medium"
+  },
+  {
+   "id": 4,
+   "lat": -33.344012394383626,
+   "lon": -70.74151552861744,
+   "demand": 11,
+   "service_time": 213,
+   "tw_start": 51480,
+   "tw_end": 57300,
+   "tw_class": "medium"
+  },
+  {
+   "id": 5,
+   "lat": -33.447014173401264,
+   "lon": -70.53794767419409,
+   "demand": 37,
+   "service_time": 291,
+   "tw_start": 49680,
+   "tw_end": 59520,
+   "tw_class": "medium"
+  },
+  {
+   "id": 6,
+   "lat": -33.57270006856599,
+   "lon": -70.5771415676536,
+   "demand": 42,
+   "service_time": 306,
+   "tw_start": 46140,
+   "tw_end": 48780,
+   "tw_class": "tight"
+  },
+  {
+   "id": 7,
+   "lat": -33.348538906165324,
+   "lon": -70.73766752196232,
+   "demand": 42,
+   "service_time": 306,
+   "tw_start": 52140,
+   "tw_end": 55260,
+   "tw_class": "tight"
+  },
+  {
+   "id": 8,
+   "lat": -33.52751694252335,
+   "lon": -70.65223277352503,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 54240,
+   "tw_end": 63660,
+   "tw_class": "medium"
+  },
+  {
+   "id": 9,
+   "lat": -33.356548058282314,
+   "lon": -70.75632662531746,
+   "demand": 15,
+   "service_time": 225,
+   "tw_start": 52800,
+   "tw_end": 61740,
+   "tw_class": "medium"
+  },
+  {
+   "id": 10,
+   "lat": -33.37067196658697,
+   "lon": -70.7524569356894,
+   "demand": 682,
+   "service_time": 2226,
+   "tw_start": 49560,
+   "tw_end": 52980,
+   "tw_class": "tight"
+  },
+  {
+   "id": 11,
+   "lat": -33.355821783109306,
+   "lon": -70.73018321801507,
+   "demand": 50,
+   "service_time": 330,
+   "tw_start": 46980,
+   "tw_end": 55500,
+   "tw_class": "medium"
+  },
+  {
+   "id": 12,
+   "lat": -33.61769553355459,
+   "lon": -70.67548741728058,
+   "demand": 243,
+   "service_time": 909,
+   "tw_start": 54420,
+   "tw_end": 62760,
+   "tw_class": "medium"
+  },
+  {
+   "id": 13,
+   "lat": -33.45676421201949,
+   "lon": -70.50222973104127,
+   "demand": 59,
+   "service_time": 357,
+   "tw_start": 43560,
+   "tw_end": 60600,
+   "tw_class": "wide"
+  },
+  {
+   "id": 14,
+   "lat": -33.36843896694981,
+   "lon": -70.73601797779897,
+   "demand": 44,
+   "service_time": 312,
+   "tw_start": 51060,
+   "tw_end": 56760,
+   "tw_class": "medium"
+  },
+  {
+   "id": 15,
+   "lat": -33.56692037976314,
+   "lon": -70.61313200908315,
+   "demand": 39,
+   "service_time": 297,
+   "tw_start": 37020,
+   "tw_end": 55620,
+   "tw_class": "wide"
+  },
+  {
+   "id": 16,
+   "lat": -33.53597038928591,
+   "lon": -70.80612213047195,
+   "demand": 47,
+   "service_time": 321,
+   "tw_start": 44700,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 17,
+   "lat": -33.356595063105175,
+   "lon": -70.75728149265382,
+   "demand": 56,
+   "service_time": 348,
+   "tw_start": 49320,
+   "tw_end": 52680,
+   "tw_class": "tight"
+  },
+  {
+   "id": 18,
+   "lat": -33.411879391413905,
+   "lon": -70.7029989096893,
+   "demand": 18,
+   "service_time": 234,
+   "tw_start": 44040,
+   "tw_end": 54300,
+   "tw_class": "medium"
+  },
+  {
+   "id": 19,
+   "lat": -33.53927944508411,
+   "lon": -70.54755346323076,
+   "demand": 50,
+   "service_time": 330,
+   "tw_start": 47520,
+   "tw_end": 56040,
+   "tw_class": "medium"
+  },
+  {
+   "id": 20,
+   "lat": -33.563906867007866,
+   "lon": -70.60183343665508,
+   "demand": 25,
+   "service_time": 255,
+   "tw_start": 36000,
+   "tw_end": 43140,
+   "tw_class": "medium"
+  },
+  {
+   "id": 21,
+   "lat": -33.36055108597386,
+   "lon": -70.738224634693,
+   "demand": 34,
+   "service_time": 282,
+   "tw_start": 51240,
+   "tw_end": 53280,
+   "tw_class": "tight"
+  },
+  {
+   "id": 22,
+   "lat": -33.6074378864855,
+   "lon": -70.5844222700306,
+   "demand": 14,
+   "service_time": 222,
+   "tw_start": 52680,
+   "tw_end": 58320,
+   "tw_class": "medium"
+  },
+  {
+   "id": 23,
+   "lat": -33.34614013796392,
+   "lon": -70.7496869596352,
+   "demand": 311,
+   "service_time": 1113,
+   "tw_start": 45300,
+   "tw_end": 47460,
+   "tw_class": "tight"
+  },
+  {
+   "id": 24,
+   "lat": -33.57807087791621,
+   "lon": -70.5977437779427,
+   "demand": 15,
+   "service_time": 225,
+   "tw_start": 52500,
+   "tw_end": 56160,
+   "tw_class": "tight"
+  },
+  {
+   "id": 25,
+   "lat": -33.543262806831216,
+   "lon": -70.5810209423942,
+   "demand": 764,
+   "service_time": 2472,
+   "tw_start": 55320,
+   "tw_end": 57600,
+   "tw_class": "tight"
+  },
+  {
+   "id": 26,
+   "lat": -33.55271903949189,
+   "lon": -70.59250597941715,
+   "demand": 12,
+   "service_time": 216,
+   "tw_start": 36000,
+   "tw_end": 39000,
+   "tw_class": "tight"
+  },
+  {
+   "id": 27,
+   "lat": -33.471766462039476,
+   "lon": -70.61392242000981,
+   "demand": 34,
+   "service_time": 282,
+   "tw_start": 37380,
+   "tw_end": 54900,
+   "tw_class": "wide"
+  },
+  {
+   "id": 28,
+   "lat": -33.46540094306332,
+   "lon": -70.784215202291,
+   "demand": 26,
+   "service_time": 258,
+   "tw_start": 48600,
+   "tw_end": 58920,
+   "tw_class": "medium"
+  },
+  {
+   "id": 29,
+   "lat": -33.35414857410986,
+   "lon": -70.75439816137646,
+   "demand": 14,
+   "service_time": 222,
+   "tw_start": 36000,
+   "tw_end": 63900,
+   "tw_class": "wide"
+  },
+  {
+   "id": 30,
+   "lat": -33.53707513045418,
+   "lon": -70.64312882066845,
+   "demand": 58,
+   "service_time": 354,
+   "tw_start": 44640,
+   "tw_end": 46740,
+   "tw_class": "tight"
+  },
+  {
+   "id": 31,
+   "lat": -33.38417580913941,
+   "lon": -70.53510985665817,
+   "demand": 35,
+   "service_time": 285,
+   "tw_start": 39720,
+   "tw_end": 43080,
+   "tw_class": "tight"
+  },
+  {
+   "id": 32,
+   "lat": -33.58338354022042,
+   "lon": -70.63730584249028,
+   "demand": 28,
+   "service_time": 264,
+   "tw_start": 45840,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 33,
+   "lat": -33.356619320690484,
+   "lon": -70.74805584169657,
+   "demand": 41,
+   "service_time": 303,
+   "tw_start": 46860,
+   "tw_end": 48840,
+   "tw_class": "tight"
+  },
+  {
+   "id": 34,
+   "lat": -33.599837528421844,
+   "lon": -70.6961873413662,
+   "demand": 39,
+   "service_time": 297,
+   "tw_start": 56100,
+   "tw_end": 58080,
+   "tw_class": "tight"
+  },
+  {
+   "id": 35,
+   "lat": -33.36062734165296,
+   "lon": -70.71710816780092,
+   "demand": 41,
+   "service_time": 303,
+   "tw_start": 36000,
+   "tw_end": 63420,
+   "tw_class": "wide"
+  },
+  {
+   "id": 36,
+   "lat": -33.37420926103571,
+   "lon": -70.56100167314817,
+   "demand": 20,
+   "service_time": 240,
+   "tw_start": 39000,
+   "tw_end": 46140,
+   "tw_class": "medium"
+  },
+  {
+   "id": 37,
+   "lat": -33.40954837566654,
+   "lon": -70.66705839143437,
+   "demand": 33,
+   "service_time": 279,
+   "tw_start": 42000,
+   "tw_end": 44880,
+   "tw_class": "tight"
+  },
+  {
+   "id": 38,
+   "lat": -33.422311263162015,
+   "lon": -70.58579489540213,
+   "demand": 27,
+   "service_time": 261,
+   "tw_start": 42900,
+   "tw_end": 45960,
+   "tw_class": "tight"
+  },
+  {
+   "id": 39,
+   "lat": -33.57299677525454,
+   "lon": -70.6147677061107,
+   "demand": 43,
+   "service_time": 309,
+   "tw_start": 40140,
+   "tw_end": 48120,
+   "tw_class": "medium"
+  },
+  {
+   "id": 40,
+   "lat": -33.57173161303443,
+   "lon": -70.59387221201206,
+   "demand": 19,
+   "service_time": 237,
+   "tw_start": 39660,
+   "tw_end": 55020,
+   "tw_class": "wide"
+  },
+  {
+   "id": 41,
+   "lat": -33.55470195954616,
+   "lon": -70.61125302470036,
+   "demand": 47,
+   "service_time": 321,
+   "tw_start": 43860,
+   "tw_end": 45780,
+   "tw_class": "tight"
+  },
+  {
+   "id": 42,
+   "lat": -33.35016081931485,
+   "lon": -70.74085771856593,
+   "demand": 34,
+   "service_time": 282,
+   "tw_start": 39960,
+   "tw_end": 63000,
+   "tw_class": "wide"
+  },
+  {
+   "id": 43,
+   "lat": -33.406936321511544,
+   "lon": -70.56365510019354,
+   "demand": 37,
+   "service_time": 291,
+   "tw_start": 40140,
+   "tw_end": 48180,
+   "tw_class": "medium"
+  },
+  {
+   "id": 44,
+   "lat": -33.356190581593694,
+   "lon": -70.72998632798735,
+   "demand": 25,
+   "service_time": 255,
+   "tw_start": 48840,
+   "tw_end": 52500,
+   "tw_class": "tight"
+  },
+  {
+   "id": 45,
+   "lat": -33.512448469125374,
+   "lon": -70.68891964797193,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 45720,
+   "tw_end": 48900,
+   "tw_class": "tight"
+  },
+  {
+   "id": 46,
+   "lat": -33.35480452331822,
+   "lon": -70.73386799429221,
+   "demand": 51,
+   "service_time": 333,
+   "tw_start": 50280,
+   "tw_end": 53280,
+   "tw_class": "tight"
+  },
+  {
+   "id": 47,
+   "lat": -33.562623909579536,
+   "lon": -70.59240044526072,
+   "demand": 14,
+   "service_time": 222,
+   "tw_start": 57480,
+   "tw_end": 64800,
+   "tw_class": "medium"
+  },
+  {
+   "id": 48,
+   "lat": -33.36047364939857,
+   "lon": -70.72077175243503,
+   "demand": 55,
+   "service_time": 345,
+   "tw_start": 36000,
+   "tw_end": 58500,
+   "tw_class": "wide"
+  },
+  {
+   "id": 49,
+   "lat": -33.38192313930958,
+   "lon": -70.53275335270591,
+   "demand": 31,
+   "service_time": 273,
+   "tw_start": 40200,
+   "tw_end": 42480,
+   "tw_class": "tight"
+  },
+  {
+   "id": 50,
+   "lat": -33.39160218275492,
+   "lon": -70.56712369471788,
+   "demand": 43,
+   "service_time": 309,
+   "tw_start": 36000,
+   "tw_end": 54180,
+   "tw_class": "wide"
+  },
+  {
+   "id": 51,
+   "lat": -33.357642568895635,
+   "lon": -70.72600759333159,
+   "demand": 22,
+   "service_time": 246,
+   "tw_start": 36360,
+   "tw_end": 52380,
+   "tw_class": "wide"
+  },
+  {
+   "id": 52,
+   "lat": -33.35591993679859,
+   "lon": -70.74774396554848,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 37320,
+   "tw_end": 62940,
+   "tw_class": "wide"
+  },
+  {
+   "id": 53,
+   "lat": -33.351267125506865,
+   "lon": -70.72766837112906,
+   "demand": 19,
+   "service_time": 237,
+   "tw_start": 39120,
+   "tw_end": 53880,
+   "tw_class": "wide"
+  },
+  {
+   "id": 54,
+   "lat": -33.542996799847394,
+   "lon": -70.59200712230607,
+   "demand": 45,
+   "service_time": 315,
+   "tw_start": 36000,
+   "tw_end": 42600,
+   "tw_class": "medium"
+  },
+  {
+   "id": 55,
+   "lat": -33.4304109130079,
+   "lon": -70.78405771057116,
+   "demand": 17,
+   "service_time": 231,
+   "tw_start": 39540,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 56,
+   "lat": -33.570489739967755,
+   "lon": -70.57393027851464,
+   "demand": 16,
+   "service_time": 228,
+   "tw_start": 36000,
+   "tw_end": 63780,
+   "tw_class": "wide"
+  },
+  {
+   "id": 57,
+   "lat": -33.46583362315651,
+   "lon": -70.64763243482423,
+   "demand": 47,
+   "service_time": 321,
+   "tw_start": 41580,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 58,
+   "lat": -33.52011063354324,
+   "lon": -70.6738955870775,
+   "demand": 46,
+   "service_time": 318,
+   "tw_start": 57000,
+   "tw_end": 59220,
+   "tw_class": "tight"
+  },
+  {
+   "id": 59,
+   "lat": -33.47723715711724,
+   "lon": -70.7761595548834,
+   "demand": 11,
+   "service_time": 213,
+   "tw_start": 43140,
+   "tw_end": 60660,
+   "tw_class": "wide"
+  },
+  {
+   "id": 60,
+   "lat": -33.367339648965,
+   "lon": -70.7260056247114,
+   "demand": 35,
+   "service_time": 285,
+   "tw_start": 40680,
+   "tw_end": 60660,
+   "tw_class": "wide"
+  },
+  {
+   "id": 61,
+   "lat": -33.55516686225755,
+   "lon": -70.58207229312973,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 58320,
+   "tw_end": 60900,
+   "tw_class": "tight"
+  },
+  {
+   "id": 62,
+   "lat": -33.559933614151625,
+   "lon": -70.576489735297,
+   "demand": 49,
+   "service_time": 327,
+   "tw_start": 58500,
+   "tw_end": 61200,
+   "tw_class": "tight"
+  },
+  {
+   "id": 63,
+   "lat": -33.57106818274913,
+   "lon": -70.60717993539609,
+   "demand": 471,
+   "service_time": 1593,
+   "tw_start": 37800,
+   "tw_end": 45600,
+   "tw_class": "medium"
+  },
+  {
+   "id": 64,
+   "lat": -33.54506761021851,
+   "lon": -70.76706031170595,
+   "demand": 43,
+   "service_time": 309,
+   "tw_start": 45420,
+   "tw_end": 48420,
+   "tw_class": "tight"
+  },
+  {
+   "id": 65,
+   "lat": -33.44184961914217,
+   "lon": -70.70449253116165,
+   "demand": 60,
+   "service_time": 360,
+   "tw_start": 43020,
+   "tw_end": 51360,
+   "tw_class": "medium"
+  },
+  {
+   "id": 66,
+   "lat": -33.56022011674653,
+   "lon": -70.60763957897107,
+   "demand": 50,
+   "service_time": 330,
+   "tw_start": 59100,
+   "tw_end": 62100,
+   "tw_class": "tight"
+  },
+  {
+   "id": 67,
+   "lat": -33.57820958306046,
+   "lon": -70.66366229050747,
+   "demand": 39,
+   "service_time": 297,
+   "tw_start": 46200,
+   "tw_end": 52440,
+   "tw_class": "medium"
+  },
+  {
+   "id": 68,
+   "lat": -33.35700717129423,
+   "lon": -70.74211911290345,
+   "demand": 23,
+   "service_time": 249,
+   "tw_start": 51120,
+   "tw_end": 54060,
+   "tw_class": "tight"
+  },
+  {
+   "id": 69,
+   "lat": -33.37186541388384,
+   "lon": -70.73499270562509,
+   "demand": 49,
+   "service_time": 327,
+   "tw_start": 46560,
+   "tw_end": 54120,
+   "tw_class": "medium"
+  },
+  {
+   "id": 70,
+   "lat": -33.45684381122347,
+   "lon": -70.64133012909237,
+   "demand": 39,
+   "service_time": 297,
+   "tw_start": 36000,
+   "tw_end": 64740,
+   "tw_class": "wide"
+  },
+  {
+   "id": 71,
+   "lat": -33.47924510435074,
+   "lon": -70.64996010197261,
+   "demand": 46,
+   "service_time": 318,
+   "tw_start": 50280,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 72,
+   "lat": -33.551705556406475,
+   "lon": -70.57920555771062,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 55260,
+   "tw_end": 64740,
+   "tw_class": "medium"
+  },
+  {
+   "id": 73,
+   "lat": -33.574482218258936,
+   "lon": -70.59736979620556,
+   "demand": 676,
+   "service_time": 2208,
+   "tw_start": 50640,
+   "tw_end": 52980,
+   "tw_class": "tight"
+  },
+  {
+   "id": 74,
+   "lat": -33.41958934977586,
+   "lon": -70.65363059652438,
+   "demand": 33,
+   "service_time": 279,
+   "tw_start": 41460,
+   "tw_end": 43680,
+   "tw_class": "tight"
+  },
+  {
+   "id": 75,
+   "lat": -33.56559667028314,
+   "lon": -70.57760824112438,
+   "demand": 40,
+   "service_time": 300,
+   "tw_start": 41220,
+   "tw_end": 51660,
+   "tw_class": "medium"
+  },
+  {
+   "id": 76,
+   "lat": -33.53740455328312,
+   "lon": -70.60466247030801,
+   "demand": 29,
+   "service_time": 267,
+   "tw_start": 36000,
+   "tw_end": 53160,
+   "tw_class": "wide"
+  },
+  {
+   "id": 77,
+   "lat": -33.46083467128443,
+   "lon": -70.63273338440138,
+   "demand": 15,
+   "service_time": 225,
+   "tw_start": 36240,
+   "tw_end": 45180,
+   "tw_class": "medium"
+  },
+  {
+   "id": 78,
+   "lat": -33.42432043273145,
+   "lon": -70.58245756193676,
+   "demand": 41,
+   "service_time": 303,
+   "tw_start": 36000,
+   "tw_end": 55740,
+   "tw_class": "wide"
+  },
+  {
+   "id": 79,
+   "lat": -33.5501237994714,
+   "lon": -70.71787505894967,
+   "demand": 42,
+   "service_time": 306,
+   "tw_start": 38880,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 80,
+   "lat": -33.56443733390503,
+   "lon": -70.58197660727785,
+   "demand": 10,
+   "service_time": 210,
+   "tw_start": 40860,
+   "tw_end": 50520,
+   "tw_class": "medium"
+  },
+  {
+   "id": 81,
+   "lat": -33.576603662193726,
+   "lon": -70.61610435224755,
+   "demand": 48,
+   "service_time": 324,
+   "tw_start": 36780,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 82,
+   "lat": -33.58987836217135,
+   "lon": -70.53142071691902,
+   "demand": 322,
+   "service_time": 1146,
+   "tw_start": 45660,
+   "tw_end": 51540,
+   "tw_class": "medium"
+  },
+  {
+   "id": 83,
+   "lat": -33.356579557614666,
+   "lon": -70.74956853677081,
+   "demand": 690,
+   "service_time": 2250,
+   "tw_start": 46800,
+   "tw_end": 49920,
+   "tw_class": "tight"
+  },
+  {
+   "id": 84,
+   "lat": -33.57607472981292,
+   "lon": -70.56974497075589,
+   "demand": 52,
+   "service_time": 336,
+   "tw_start": 38520,
+   "tw_end": 58200,
+   "tw_class": "wide"
+  },
+  {
+   "id": 85,
+   "lat": -33.354475224538255,
+   "lon": -70.73425955337324,
+   "demand": 46,
+   "service_time": 318,
+   "tw_start": 48360,
+   "tw_end": 54660,
+   "tw_class": "medium"
+  },
+  {
+   "id": 86,
+   "lat": -33.42917598118635,
+   "lon": -70.5202289343683,
+   "demand": 31,
+   "service_time": 273,
+   "tw_start": 41940,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 87,
+   "lat": -33.604942771089675,
+   "lon": -70.68154164449166,
+   "demand": 21,
+   "service_time": 243,
+   "tw_start": 53580,
+   "tw_end": 62820,
+   "tw_class": "medium"
+  },
+  {
+   "id": 88,
+   "lat": -33.534523354315404,
+   "lon": -70.65501476716734,
+   "demand": 44,
+   "service_time": 312,
+   "tw_start": 38340,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 89,
+   "lat": -33.513383718640334,
+   "lon": -70.72068629660134,
+   "demand": 41,
+   "service_time": 303,
+   "tw_start": 53460,
+   "tw_end": 56340,
+   "tw_class": "tight"
+  },
+  {
+   "id": 90,
+   "lat": -33.56236035892052,
+   "lon": -70.74984368511664,
+   "demand": 48,
+   "service_time": 324,
+   "tw_start": 36000,
+   "tw_end": 58800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 91,
+   "lat": -33.56329197878859,
+   "lon": -70.60742049700609,
+   "demand": 674,
+   "service_time": 2202,
+   "tw_start": 50160,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 92,
+   "lat": -33.349966785433224,
+   "lon": -70.74057182987619,
+   "demand": 22,
+   "service_time": 246,
+   "tw_start": 43680,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 93,
+   "lat": -33.44445222213717,
+   "lon": -70.66486610032808,
+   "demand": 50,
+   "service_time": 330,
+   "tw_start": 54600,
+   "tw_end": 57420,
+   "tw_class": "tight"
+  },
+  {
+   "id": 94,
+   "lat": -33.55818353908426,
+   "lon": -70.59254434633513,
+   "demand": 55,
+   "service_time": 345,
+   "tw_start": 36000,
+   "tw_end": 38460,
+   "tw_class": "tight"
+  },
+  {
+   "id": 95,
+   "lat": -33.51249798504859,
+   "lon": -70.62989527612085,
+   "demand": 38,
+   "service_time": 294,
+   "tw_start": 36000,
+   "tw_end": 44100,
+   "tw_class": "medium"
+  },
+  {
+   "id": 96,
+   "lat": -33.5450510412595,
+   "lon": -70.77454121818641,
+   "demand": 55,
+   "service_time": 345,
+   "tw_start": 45360,
+   "tw_end": 48600,
+   "tw_class": "tight"
+  },
+  {
+   "id": 97,
+   "lat": -33.56218273508156,
+   "lon": -70.58339141934127,
+   "demand": 35,
+   "service_time": 285,
+   "tw_start": 42120,
+   "tw_end": 64800,
+   "tw_class": "wide"
+  },
+  {
+   "id": 98,
+   "lat": -33.574540776623074,
+   "lon": -70.73010140499373,
+   "demand": 50,
+   "service_time": 330,
+   "tw_start": 47640,
+   "tw_end": 49800,
+   "tw_class": "tight"
+  },
+  {
+   "id": 99,
+   "lat": -33.593946709822085,
+   "lon": -70.5662956281171,
+   "demand": 55,
+   "service_time": 345,
+   "tw_start": 50340,
+   "tw_end": 59160,
+   "tw_class": "medium"
+  },
+  {
+   "id": 100,
+   "lat": -33.53775680652836,
+   "lon": -70.60095048876671,
+   "demand": 57,
+   "service_time": 351,
+   "tw_start": 36000,
+   "tw_end": 42540,
+   "tw_class": "medium"
+  }
+ ],
+ "vehicle_types": [
+  {
+   "type": "small",
+   "capacity": 800,
+   "count": 3,
+   "fixed_cost": 20000,
+   "cost_per_km": 350
+  },
+  {
+   "type": "medium",
+   "capacity": 1600,
+   "count": 3,
+   "fixed_cost": 30000,
+   "cost_per_km": 500
+  },
+  {
+   "type": "large",
+   "capacity": 3200,
+   "count": 1,
+   "fixed_cost": 45000,
+   "cost_per_km": 700
+  }
+ ]
+}
